@@ -1,10 +1,13 @@
 /// <reference path="./authTypes.d.ts" />
 import { Promise, when, reject } from 'q'
+import wretch from 'wretch'
+import 'whatwg-fetch' // Browser Pollyfill for window.fetch (wretch dependency)
 
-function header(jwt: string, options?: object){
-  return Object.assign({}
-                     , { Authorization: `Bearer ${jwt}`}
-                     , options)
+function getJson(url: string, jwt?: string) {
+  return wretch(url)
+          .auth(jwt ? `Bearer ${jwt}` : '')
+          .get()
+          .json()
 }
 
 /**
@@ -14,7 +17,6 @@ export class AuthService {
 
   config: AuthConfig
   ngMessenger: ngMessenger
-  http: httpProvider
 
   /**
    *
@@ -24,11 +26,10 @@ export class AuthService {
    * @param {AuthConfig} config
    * @param
    */
-  constructor(config: AuthConfig, private httpProvider: httpProvider, ngMessenger: ngMessenger){
+  constructor(config: AuthConfig, ngMessenger: ngMessenger){
     const self = this;
     this.config = config;
     this.ngMessenger = ngMessenger
-    this.http = httpProvider
 
     // Setup general event listeners that always run
     addEventListener('message', (event: any) => {
@@ -163,7 +164,7 @@ getFromLocalStorage(key: string) {
     // Save JWT to send with final request to revoke it
     self.removeAuth() // purge the JWT
 
-    return this.http.get(`/revoke?sso=true`, header(this.getJWT()))
+    return getJson(`/revoke?sso=true`, this.getJWT())
             .then(() => {
               if(this.config.LOGOUT_URL) window.location.href = this.config.LOGOUT_URL
               if(this.config.FORCE_LOGIN) self.forceLogin();
@@ -187,8 +188,8 @@ getFromLocalStorage(key: string) {
     return Promise<UserProfile>((resolve, reject) => {
       //check to make sure we can make called
       if (JWT) {
-        this.http.get<UserProfile>(`${this.config.IDP_BASE_URL}/api/profile`, header(JWT))
-          .then(response =>  resolve(response))
+        getJson(`${this.config.IDP_BASE_URL}/api/profile`, JWT)
+          .then((response: UserProfile) =>  resolve(response))
           .catch(err => reject(err))
       } else {
         reject(null)
@@ -352,9 +353,13 @@ getFromLocalStorage(key: string) {
       return when(null)
     } else {
       return Promise<string>((resolve, reject) => {
-        self.http.get<string>('/checktoken', header(originalJWT, { observe: 'response' }))
-        .then((resp: any) => {
-          const header = resp.headers('Authorization')
+        wretch('/checktoken')
+          .auth(`Bearer ${originalJWT}`)
+          .get()
+          .res()
+        // self.http.get<string>('/checktoken', header(originalJWT, { observe: 'response' }))
+        .then(resp => {
+          const header = resp.headers['Authorize']
           const newJWT = header && header.replace('Bearer ','')
           if(newJWT) this.setAuth(newJWT);
 

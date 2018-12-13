@@ -4,22 +4,8 @@
 /// <reference path="../authTypes.d.ts" />
 import { AuthService, GeoPlatformUser } from '../auth'
 
-import { Injectable } from '@angular/core'
-import { HttpClient } from '@angular/common/http';
-
 import { Subject } from 'rxjs'
 import { filter } from 'rxjs/operators'
-
-// Setup httpProvider
-@Injectable()
-class networkProvider implements httpProvider {
-    constructor(private http: HttpClient){}
-
-    get(url){
-        return this.http.get(url)
-                    .toPromise()
-    }
-}
 
 
 // Setup messageProvider
@@ -53,8 +39,6 @@ class msgProvider implements ngMessenger {
 /**
  * Expose the class that can be loaded in Angular
  */
-export class ngAuthService {
-    constructor(config: AuthConfig){
-        return new AuthService(config, networkProvider, new msgProvider())
-    }
+export function ngGpoauthFactory(config: AuthConfig): AuthService {
+    return new AuthService(config,  new msgProvider())
 }
