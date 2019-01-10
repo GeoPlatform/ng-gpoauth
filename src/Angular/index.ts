@@ -1,12 +1,10 @@
 /**
  * For Angluar 2+ (TypeScript)
  */
-/// <reference path="../authTypes.d.ts" />
 import { AuthService, GeoPlatformUser } from '../auth'
 
 import { Subject } from 'rxjs'
 import { filter } from 'rxjs/operators'
-
 
 // Setup messageProvider
 type MSG = {
@@ -42,3 +40,6 @@ class msgProvider implements ngMessenger {
 export function ngGpoauthFactory(config: AuthConfig): AuthService {
     return new AuthService(config,  new msgProvider())
 }
+
+// Expose internal types
+export { GeoPlatformUser } from '../auth'

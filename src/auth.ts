@@ -48,25 +48,38 @@ export class AuthService {
     if(!user && this.config.AUTH_TYPE === 'grant') self.ssoCheck()
   }
 
-/**
- * Security wrapper for obfuscating values passed into local storage
- */
-private saveToLocalStorage(key: string, value: any) {
-  localStorage.setItem(key, btoa(value));
-};
-
-getFromLocalStorage(key: string) {
-  const raw = localStorage.getItem(key)
-  try{
-    return raw ?
-            atob(raw) :
-            undefined;
-  } catch (e){ // Catch bad encoding or formally not encoded
-    return undefined;
+  /**
+   * Expose ngMessenger so that appliction code is able to
+   * subscribe to notifications sent by ng-gpoauth
+   */
+  getMessenger(): ngMessenger {
+    return this.ngMessenger
   }
-};
 
-  private ssoCheck(){
+  /**
+   * Security wrapper for obfuscating values passed into local storage
+   */
+  private saveToLocalStorage(key: string, value: any) {
+    localStorage.setItem(key, btoa(value));
+  };
+
+  /**
+   * Retrieve and decode value from localstorage
+   *
+   * @param key
+   */
+  getFromLocalStorage(key: string): string {
+    const raw = localStorage.getItem(key)
+    try{
+      return raw ?
+              atob(raw) :
+              undefined;
+    } catch (e){ // Catch bad encoding or formally not encoded
+      return undefined;
+    }
+  };
+
+  private ssoCheck(): void {
     const self = this;
     const ssoURL = `/login?sso=true&cachebuster=${(new Date()).getTime()}`
     const ssoIframe = this.createIframe(ssoURL)
@@ -95,7 +108,7 @@ getFromLocalStorage(key: string) {
    *
    * @method init
    */
-  private init(){
+  private init(): GeoPlatformUser {
     const jwt = this.getJWT();
     if(jwt) this.setAuth(jwt)
 
@@ -223,7 +236,7 @@ getFromLocalStorage(key: string) {
    * @param callback optional function to invoke with the user
    * @return object representing current user
    */
-  getUser(callback?: (user: GeoPlatformUser) => any): GeoPlatformUser {
+  getUserSync(callback?: (user: GeoPlatformUser) => any): GeoPlatformUser {
     const jwt = this.getJWT();
     // If callback provided we can treat async and call server
     if(callback && typeof(callback) === 'function'){
@@ -272,7 +285,7 @@ getFromLocalStorage(key: string) {
    *
    * @returns {Promise<User>} User - the authenticated user
    */
-  getUserQ(): Promise<GeoPlatformUser | null> {
+  getUser(): Promise<GeoPlatformUser | null> {
     const self = this;
     return Promise<GeoPlatformUser | null>((resolve, reject) => {
       this.check()
