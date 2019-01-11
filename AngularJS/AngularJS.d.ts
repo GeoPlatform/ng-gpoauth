@@ -1,4 +1,4 @@
-/// <reference path="../authTypes.d.ts" />
+/// <reference path="../src/authTypes.d.ts" />
 
 /**
  * For AngluarJS (Angluar1 : JavaScript)

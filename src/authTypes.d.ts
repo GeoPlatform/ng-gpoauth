@@ -50,6 +50,13 @@ type IDPRole = 'admin'
               | 'staff'
               | 'user'
 
+
+type authMessage = 'userAuthenticated'
+                 | 'userSignOut'
+                 | 'auth:requireLogin'
+                 | 'auth:iframeLoginShow'
+                 | 'auth:iframeLoginHide'
+
 /**
  * @type userProfile
  */
@@ -95,5 +102,5 @@ declare interface ngMessenger {
    * @param msgName
    * @param func
    */
-  on(msgName: string, func: (event: Event, data: any) => any)
+  on(msgName: authMessage, func: (event: Event, data: any) => any)
 }

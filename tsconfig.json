@@ -15,5 +15,10 @@
       "es2017",
       "dom"
     ]
-  }
+  },
+  "include": [
+    "src/**/*",
+    "Angular/**/*",
+    "AngularJS/**/*"
+  ]
 }

@@ -574,3 +574,10 @@ export class GeoPlatformUser  {
                     .length;
   };
 }
+
+export const DefaultAuthConf: AuthConfig = {
+  AUTH_TYPE: 'grant',
+  ALLOWIFRAMELOGIN: false,
+  FORCE_LOGIN: false,
+  ALLOW_DEV_EDITS: false,
+}
