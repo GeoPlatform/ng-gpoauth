@@ -8,25 +8,25 @@ import { filter } from 'rxjs/operators'
 
 // Setup messageProvider
 type MSG = {
-    name: string
-    data: null | GeoPlatformUser
+    name: authMessage
+    data: GeoPlatformUser // or null
 }
-class msgProvider implements ngMessenger {
+class msgProvider implements ngMessenger<Subject<MSG>> {
     sub: Subject<MSG>
 
     constructor(){
         this.sub = new Subject<MSG>();
     }
 
-    get(){
+    raw(){
         return this.sub;
     }
 
-    broadcast(name, data){
+    broadcast(name: authMessage, data: GeoPlatformUser){
         this.sub.next({name, data})
     }
 
-    on(name, func){
+    on(name: authMessage, func: (e: Event, data: GeoPlatformUser) => any){
         this.sub
             .pipe(filter((msg => msg.name === name)))
             .subscribe(msg => func(new Event(msg.name), msg.data))

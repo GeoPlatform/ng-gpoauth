@@ -263,7 +263,7 @@ export class AuthService {
    *  - ALLOWIFRAMELOGIN : Vertical
    *
    *
-   * getUserQ | T | F (FORCE_LOGIN)
+   * getUser  | T | F (FORCE_LOGIN)
    * -----------------------------
    * T        | 1 | 2
    * F        | 3 | 4
@@ -281,12 +281,13 @@ export class AuthService {
    * app to forgo a reload is it should have waited till the entire
    * time till the user was successfully logged in.
    *
-   * @method getUserQ
+   * @method getUser
    *
    * @returns {Promise<User>} User - the authenticated user
    */
   getUser(): Promise<GeoPlatformUser | null> {
     const self = this;
+
     return Promise<GeoPlatformUser | null>((resolve, reject) => {
       this.check()
       .then(user => {

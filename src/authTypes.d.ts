@@ -85,16 +85,22 @@ declare interface httpProvider {
   get<T>(url: string, headers: {}): Promise<T>
 }
 
-declare interface ngMessenger {
+/**
+ * An abstracted messanger object so that any version of Angular
+ * (or other framework) is albe to implement a messenger.
+ */
+declare interface ngMessenger<T> {
+  sub: T
+
   /**
-   *
+   * Get the raw messaging mechanism
    */
-  get(): any
+  raw(): T
 
   /**
    *
    */
-  broadcast(name: string, msg?: any): any
+  broadcast(name: authMessage, msg?: any): any
 
   /**
    * Message Listener
