@@ -87,7 +87,7 @@ declare interface httpProvider {
 
 /**
  * An abstracted messanger object so that any version of Angular
- * (or other framework) is albe to implement a messenger.
+ * (or other framework) is able to implement a messenger.
  */
 declare interface ngMessenger<T> {
   sub: T
