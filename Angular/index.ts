@@ -1,16 +1,15 @@
 /**
  * For Angluar 2+ (TypeScript)
  */
-import { AuthService, GeoPlatformUser, DefaultAuthConf } from '../src/auth'
+import { MSG, ngMessenger, AuthConfig, authMessage } from '../src/authTypes'
+import { AuthService, DefaultAuthConf } from '../src/auth'
+import { GeoPlatformUser } from '../src/GeoPlatformUser'
 
 import { Subject } from 'rxjs'
 import { filter } from 'rxjs/operators'
 
 // Setup messageProvider
-type MSG = {
-    name: authMessage
-    data: GeoPlatformUser // or null
-}
+
 class msgProvider implements ngMessenger<Subject<MSG>> {
     sub: Subject<MSG>
 
@@ -22,14 +21,14 @@ class msgProvider implements ngMessenger<Subject<MSG>> {
         return this.sub;
     }
 
-    broadcast(name: authMessage, data: GeoPlatformUser){
-        this.sub.next({name, data})
+    broadcast(name: authMessage, user: GeoPlatformUser){
+        this.sub.next({name, user})
     }
 
     on(name: authMessage, func: (e: Event, data: GeoPlatformUser) => any){
         this.sub
             .pipe(filter(msg => msg.name === name))
-            .subscribe(msg => func(new Event(msg.name), msg.data))
+            .subscribe(msg => func(new Event(msg.name), msg.user))
     }
 }
 
@@ -42,4 +41,5 @@ export function ngGpoauthFactory(config?: AuthConfig): AuthService {
 }
 
 // Expose internal types
-export { GeoPlatformUser, AuthService } from '../src/auth'
+export { AuthService } from '../src/auth'
+export { GeoPlatformUser } from '../src/GeoPlatformUser'

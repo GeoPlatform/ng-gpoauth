@@ -1,4 +1,6 @@
-/// <reference path="./authTypes.d.ts" />
+import { ngMessenger, AuthConfig, JWT, UserProfile } from '../src/authTypes'
+import { GeoPlatformUser } from './GeoPlatformUser'
+
 import { Promise, when, reject } from 'q'
 import wretch from 'wretch'
 import 'whatwg-fetch' // Browser Pollyfill for window.fetch (wretch dependency)
@@ -16,7 +18,7 @@ function getJson(url: string, jwt?: string) {
 export class AuthService {
 
   config: AuthConfig
-  ngMessenger: ngMessenger
+  messenger: ngMessenger
 
   /**
    *
@@ -29,7 +31,7 @@ export class AuthService {
   constructor(config: AuthConfig, ngMessenger: ngMessenger){
     const self = this;
     this.config = config;
-    this.ngMessenger = ngMessenger
+    this.messenger = ngMessenger
 
     // Setup general event listeners that always run
     addEventListener('message', (event: any) => {
@@ -53,7 +55,7 @@ export class AuthService {
    * subscribe to notifications sent by ng-gpoauth
    */
   getMessenger(): ngMessenger {
-    return this.ngMessenger
+    return this.messenger
   }
 
   /**
@@ -155,7 +157,7 @@ export class AuthService {
     } else {
       // Iframe login
       if(this.config.ALLOWIFRAMELOGIN){
-        this.ngMessenger.broadcast('auth:requireLogin')
+        this.messenger.broadcast('auth:requireLogin')
 
         // Redirect login
       } else {
@@ -288,6 +290,9 @@ export class AuthService {
   getUser(): Promise<GeoPlatformUser | null> {
     const self = this;
 
+    // For basic testing
+    // this.messenger.broadcast('userAuthenticated', { name: 'username'})
+
     return Promise<GeoPlatformUser | null>((resolve, reject) => {
       this.check()
       .then(user => {
@@ -297,7 +302,7 @@ export class AuthService {
           // Case 1 - ALLOWIFRAMELOGIN: true | FORCE_LOGIN: true
           if(this.config.ALLOWIFRAMELOGIN && this.config.FORCE_LOGIN){
             // Resolve with user once they have logged in
-            this.ngMessenger.on('userAuthenticated', (event: Event, user: GeoPlatformUser) => {
+            this.messenger.on('userAuthenticated', (event: Event, user: GeoPlatformUser) => {
               resolve(user)
             })
           }
@@ -508,7 +513,7 @@ export class AuthService {
    */
   private setAuth(jwt: string): void {
     this.saveToLocalStorage('gpoauthJWT', jwt)
-    this.ngMessenger.broadcast("userAuthenticated", this.getUserFromJWT(jwt))
+    this.messenger.broadcast("userAuthenticated", this.getUserFromJWT(jwt))
   };
 
   /**
@@ -517,64 +522,11 @@ export class AuthService {
   private removeAuth(): void {
     localStorage.removeItem('gpoauthJWT')
     // Send null user as well (backwards compatability)
-    this.ngMessenger.broadcast("userAuthenticated", null)
-    this.ngMessenger.broadcast("userSignOut")
+    this.messenger.broadcast("userAuthenticated", null)
+    this.messenger.broadcast("userSignOut")
   };
 }
 
-
-/**
- * Convience class representing a simplified user.
- *
- * @class GeoPlatformUser
- */
-export class GeoPlatformUser  {
-  id      : string
-  username: string
-  name    : string
-  email   : string
-  org     : string
-  roles   : string
-  groups  : [{_id: string, name: string}]
-  exp     : number
-
-  constructor(opts: JWT) {
-    this.id = opts.sub
-    this.username = opts.username
-    this.name = opts.name
-    this.email = opts.email
-    this.org = opts.orgs[0] && opts.orgs[0].name
-    this.groups = opts.groups
-    this.roles = opts.roles
-    this.exp = opts.exp
-  }
-
-  toJSON() {
-    return JSON.parse(JSON.stringify(Object.assign({}, this)));
-  };
-
-  clone() {
-    return Object.assign({}, this)
-  };
-
-  compare(arg: any) {
-    if (arg instanceof GeoPlatformUser) {
-      return this.id === arg.id;
-    } else if (typeof(arg) === 'object') {
-      return typeof(arg.id) !== 'undefined' &&
-        arg.id === this.id;
-    }
-    return false;
-  };
-
-  isAuthorized(role: string) {
-    return this.groups &&
-            !!this.groups
-                    .map(g => g.name)
-                    .filter(n => n === role)
-                    .length;
-  };
-}
 
 export const DefaultAuthConf: AuthConfig = {
   AUTH_TYPE: 'grant',

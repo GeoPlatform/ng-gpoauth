@@ -1,7 +1,9 @@
+import { Subject } from "rxjs"
+import { GeoPlatformUser } from './GeoPlatformUser'
+
 /*
  * Common types to ng-gpoauth (used in both AngularJS and Angular(2+))
  */
-// import {Promise} from 'q'
 
 /**
  * Common configuration object used by ng-common.
@@ -11,7 +13,7 @@
  *
  * @type GeoPlatform
  */
-type AuthConfig = {
+export type AuthConfig = {
   // Auth Settings
   AUTH_TYPE?: 'grant' | 'token'
   IDP_BASE_URL?: string
@@ -51,7 +53,7 @@ type IDPRole = 'admin'
               | 'user'
 
 
-type authMessage = 'userAuthenticated'
+export type authMessage = 'userAuthenticated'
                  | 'userSignOut'
                  | 'auth:requireLogin'
                  | 'auth:iframeLoginShow'
@@ -85,13 +87,16 @@ declare interface httpProvider {
   get<T>(url: string, headers: {}): Promise<T>
 }
 
+export type MSG = {
+  name: authMessage
+  user?: GeoPlatformUser // or null
+}
+
 /**
  * An abstracted messanger object so that any version of Angular
  * (or other framework) is able to implement a messenger.
  */
-declare interface ngMessenger<T> {
-  sub: T
-
+declare interface ngMessenger<T= Subject<MSG>> {
   /**
    * Get the raw messaging mechanism
    */
