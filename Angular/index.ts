@@ -27,7 +27,7 @@ class msgProvider implements ngMessenger<Subject<MSG>> {
 
     on(name: authMessage, func: (e: Event, data: GeoPlatformUser) => any){
         this.sub
-            .pipe(filter(msg => msg.name === name))
+            .filter(msg => msg.name === name)
             .subscribe(msg => func(new Event(msg.name), msg.user))
     }
 }

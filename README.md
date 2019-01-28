@@ -127,10 +127,10 @@ sub.subscribe(msg => {
         case 'userAuthenticated':
             // do something..
             let user = msg.user;
-            done;
+            break;
         case 'userSignOut':
             // do something else
-            done;
+            break;
     }
 })
 
