@@ -17,6 +17,7 @@ export type AuthConfig = {
   // Auth Settings
   AUTH_TYPE?: 'grant' | 'token'
   IDP_BASE_URL?: string
+  APP_BASE_URL?: string
   APP_ID?: boolean
   ALLOWIFRAMELOGIN?: boolean
   FORCE_LOGIN?: boolean

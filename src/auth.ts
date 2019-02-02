@@ -179,7 +179,7 @@ export class AuthService {
     // Save JWT to send with final request to revoke it
     self.removeAuth() // purge the JWT
 
-    return getJson(`/revoke?sso=true`, this.getJWT())
+    return getJson(`${this.config.APP_BASE_URL}/revoke?sso=true`, this.getJWT())
             .then(() => {
               if(this.config.LOGOUT_URL) window.location.href = this.config.LOGOUT_URL
               if(this.config.FORCE_LOGIN) self.forceLogin();
@@ -372,7 +372,7 @@ export class AuthService {
       return when(null)
     } else {
       return Promise<string>((resolve, reject) => {
-        wretch('/checktoken')
+        wretch(`${this.config.APP_BASE_URL}/checktoken/`)
           .auth(`Bearer ${originalJWT}`)
           .get()
           .res()
@@ -385,7 +385,6 @@ export class AuthService {
           resolve(newJWT ? newJWT : originalJWT);
         })
       })
-
     }
   }
 
@@ -533,4 +532,5 @@ export const DefaultAuthConf: AuthConfig = {
   ALLOWIFRAMELOGIN: false,
   FORCE_LOGIN: false,
   ALLOW_DEV_EDITS: false,
+  APP_BASE_URL: '' // absolute path // use . for relative path
 }
