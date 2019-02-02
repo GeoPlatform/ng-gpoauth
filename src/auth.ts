@@ -2,14 +2,14 @@ import { ngMessenger, AuthConfig, JWT, UserProfile } from '../src/authTypes'
 import { GeoPlatformUser } from './GeoPlatformUser'
 
 import { Promise, when, reject } from 'q'
-import wretch from 'wretch'
-import 'whatwg-fetch' // Browser Pollyfill for window.fetch (wretch dependency)
+import axios from 'axios'
 
 function getJson(url: string, jwt?: string) {
-  return wretch(url)
-          .auth(jwt ? `Bearer ${jwt}` : '')
-          .get()
-          .json()
+  return axios.get(url, {
+                          headers: {'Authorize' : jwt ? `Bearer ${jwt}` : ''},
+                          responseType: 'json'
+                        })
+                        .then(r => r.data);
 }
 
 /**
@@ -372,18 +372,14 @@ export class AuthService {
       return when(null)
     } else {
       return Promise<string>((resolve, reject) => {
-        wretch(`${this.config.APP_BASE_URL}/checktoken/`)
-          .auth(`Bearer ${originalJWT}`)
-          .get()
-          .res()
-        // self.http.get<string>('/checktoken', header(originalJWT, { observe: 'response' }))
-        .then(resp => {
-          const header = resp.headers['Authorize']
-          const newJWT = header && header.replace('Bearer ','')
-          if(newJWT) this.setAuth(newJWT);
+        axios(`${this.config.APP_BASE_URL}/checktoken/`)
+            .then(resp => {
+              const header = resp.headers['Authorize']
+              const newJWT = header && header.replace('Bearer ','')
+              if(newJWT) this.setAuth(newJWT);
 
-          resolve(newJWT ? newJWT : originalJWT);
-        })
+              resolve(newJWT ? newJWT : originalJWT);
+            })
       })
     }
   }

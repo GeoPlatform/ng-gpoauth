@@ -12,9 +12,8 @@
   },
   "private": true,
   "dependencies": {
-    "q": "^1.5.1",
-    "whatwg-fetch": "^3.0.0",
-    "wretch": "^1.4.2"
+    "axios": "^0.18.0",
+    "q": "^1.5.1"
   },
   "devDependencies": {
     "@angular/animations": "^5.2.0",
