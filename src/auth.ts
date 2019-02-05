@@ -340,6 +340,11 @@ export class AuthService {
   check(): Promise<GeoPlatformUser>{
     const jwt = this.getJWT();
 
+    // If no local JWT
+    if(!jwt)
+      return this.checkWithClient("")
+                 .then(jwt => jwt.length ? this.getUserFromJWT(jwt) : null);
+
     if(!jwt) return when(null);
     if(!this.isImplicitJWT(jwt)){ // Grant token
       return this.isExpired(jwt) ?
@@ -367,19 +372,24 @@ export class AuthService {
    * @return {Promise<jwt>} - promise resolving with a JWT
    */
   checkWithClient(originalJWT: string): Promise<any> {
-    const self = this
     if(this.config.AUTH_TYPE === 'token'){
       return when(null)
     } else {
       return Promise<string>((resolve, reject) => {
-        axios(`${this.config.APP_BASE_URL}/checktoken/`)
-            .then(resp => {
-              const header = resp.headers['Authorize']
-              const newJWT = header && header.replace('Bearer ','')
-              if(newJWT) this.setAuth(newJWT);
+        axios(`${this.config.APP_BASE_URL}/checktoken/`, {
+          headers: {
+            'Authorization' : originalJWT ? `Bearer ${originalJWT}` : '',
+            'Access-Control-Expose-Headers': 'Authorization, WWW-Authorization, content-length'
+          }
+        })
+        .then(resp => {
+          const header = resp.headers['authorization']
+          const newJWT = header && header.replace('Bearer ','')
+          if(newJWT) this.setAuth(newJWT);
 
-              resolve(newJWT ? newJWT : originalJWT);
-            })
+          resolve(newJWT ? newJWT : originalJWT);
+        })
+        .catch(err => reject(err));
       })
     }
   }
