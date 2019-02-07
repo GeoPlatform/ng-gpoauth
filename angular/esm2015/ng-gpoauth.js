@@ -1,0 +1,12 @@
+/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
+ */
+/**
+ * Generated bundle index. Do not edit.
+ */
+export { ngGpoauthFactory, AuthService, GeoPlatformUser, TokenInterceptor } from './public_api';
+export { msgProvider as ɵd } from './src/angular/index';
+export { DefaultAuthConf as ɵa } from './src/auth';
+
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoibmctZ3BvYXV0aC5qcyIsInNvdXJjZVJvb3QiOiJuZzovL25nLWdwb2F1dGgvIiwic291cmNlcyI6WyJuZy1ncG9hdXRoLnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7Ozs7Ozs7QUFJQSxpRkFBYyxjQUFjLENBQUM7QUFFN0IsT0FBTyxFQUFDLFdBQVcsSUFBSSxFQUFFLEVBQUMsTUFBTSxxQkFBcUIsQ0FBQztBQUN0RCxPQUFPLEVBQUMsZUFBZSxJQUFJLEVBQUUsRUFBQyxNQUFNLFlBQVksQ0FBQyIsInNvdXJjZXNDb250ZW50IjpbIi8qKlxuICogR2VuZXJhdGVkIGJ1bmRsZSBpbmRleC4gRG8gbm90IGVkaXQuXG4gKi9cblxuZXhwb3J0ICogZnJvbSAnLi9wdWJsaWNfYXBpJztcblxuZXhwb3J0IHttc2dQcm92aWRlciBhcyDJtWR9IGZyb20gJy4vc3JjL2FuZ3VsYXIvaW5kZXgnO1xuZXhwb3J0IHtEZWZhdWx0QXV0aENvbmYgYXMgybVhfSBmcm9tICcuL3NyYy9hdXRoJztcbmV4cG9ydCB7QXV0aENvbmZpZyBhcyDJtWIsSldUIGFzIMm1ZSxuZ01lc3NlbmdlciBhcyDJtWN9IGZyb20gJy4vc3JjL2F1dGhUeXBlcyc7Il19

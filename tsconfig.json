@@ -17,9 +17,7 @@
     ]
   },
   "include": [
-    "src/**/*",
-    "Angular/**/*",
-    "AngularJS/**/*"
+    "src",
   ],
   "exclude": [
     "node_modules"

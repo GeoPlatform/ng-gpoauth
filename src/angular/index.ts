@@ -1,15 +1,15 @@
 /**
  * For Angluar 2+ (TypeScript)
  */
-import { MSG, ngMessenger, AuthConfig, authMessage } from '../src/authTypes'
-import { AuthService, DefaultAuthConf } from '../src/auth'
-import { GeoPlatformUser } from '../src/GeoPlatformUser'
+import { MSG, ngMessenger, AuthConfig, authMessage } from '../authTypes'
+import { AuthService, DefaultAuthConf } from '../auth'
+import { GeoPlatformUser } from '../GeoPlatformUser'
 
 import { Subject } from 'rxjs'
 
 // Setup messageProvider
 
-class msgProvider implements ngMessenger<Subject<MSG>> {
+export class msgProvider implements ngMessenger<Subject<MSG>> {
     sub: Subject<MSG>
 
     constructor(){
@@ -45,6 +45,6 @@ export function ngGpoauthFactory(config?: AuthConfig): AuthService {
 }
 
 // Expose internal types
-export { AuthService } from '../src/auth'
-export { GeoPlatformUser } from '../src/GeoPlatformUser'
+export { AuthService } from '../auth'
+export { GeoPlatformUser } from '../GeoPlatformUser'
 export { TokenInterceptor } from './interceptor'
