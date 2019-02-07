@@ -1,12 +1,10 @@
 import { ngMessenger, AuthConfig, JWT, UserProfile } from '../src/authTypes'
 import { GeoPlatformUser } from './GeoPlatformUser'
-
-import { Promise, when, reject } from 'q'
 import axios from 'axios'
 
 function getJson(url: string, jwt?: string) {
   return axios.get(url, {
-                          headers: {'Authorize' : jwt ? `Bearer ${jwt}` : ''},
+                          headers: { 'Authorization' : jwt ? `Bearer ${jwt}` : '' },
                           responseType: 'json'
                         })
                         .then(r => r.data);
@@ -200,7 +198,7 @@ export class AuthService {
   getOauthProfile(): Promise<UserProfile> {
     const JWT = this.getJWT();
 
-    return Promise<UserProfile>((resolve, reject) => {
+    return new Promise<UserProfile>((resolve, reject) => {
       //check to make sure we can make called
       if (JWT) {
         getJson(`${this.config.IDP_BASE_URL}/api/profile`, JWT)
@@ -293,7 +291,7 @@ export class AuthService {
     // For basic testing
     // this.messenger.broadcast('userAuthenticated', { name: 'username'})
 
-    return Promise<GeoPlatformUser | null>((resolve, reject) => {
+    return new Promise<GeoPlatformUser | null>((resolve, reject) => {
       this.check()
       .then(user => {
         if(user) {
@@ -338,24 +336,26 @@ export class AuthService {
    * @returns {User} - ng-common user object or null
    */
   check(): Promise<GeoPlatformUser>{
-    const jwt = this.getJWT();
+    return new Promise((resolve, rej) => {
+      const jwt = this.getJWT();
 
-    // If no local JWT
-    if(!jwt)
-      return this.checkWithClient("")
-                 .then(jwt => jwt.length ? this.getUserFromJWT(jwt) : null);
+      // If no local JWT
+      if(!jwt)
+        return this.checkWithClient("")
+                   .then(jwt => jwt.length ? this.getUserFromJWT(jwt) : null);
 
-    if(!jwt) return when(null);
-    if(!this.isImplicitJWT(jwt)){ // Grant token
-      return this.isExpired(jwt) ?
-              this.checkWithClient(jwt)
-                .then(jwt => this.getUserFromJWT(jwt)) : // Check with server
-              when(this.getUserFromJWT(jwt));
-    } else { // Implicit JWT
-      return this.isExpired(jwt) ?
-              reject(null) :
-              when(this.getUserFromJWT(jwt));
-    }
+      if(!jwt) return resolve(null);
+      if(!this.isImplicitJWT(jwt)){ // Grant token
+        return this.isExpired(jwt) ?
+                this.checkWithClient(jwt)
+                  .then(jwt => this.getUserFromJWT(jwt)) : // Check with server
+                  resolve(this.getUserFromJWT(jwt));
+      } else { // Implicit JWT
+        return this.isExpired(jwt) ?
+                Promise.reject(null) :
+                resolve(this.getUserFromJWT(jwt));
+      }
+    })
   }
 
   /**
@@ -372,11 +372,12 @@ export class AuthService {
    * @return {Promise<jwt>} - promise resolving with a JWT
    */
   checkWithClient(originalJWT: string): Promise<any> {
-    if(this.config.AUTH_TYPE === 'token'){
-      return when(null)
-    } else {
-      return Promise<string>((resolve, reject) => {
-        axios(`${this.config.APP_BASE_URL}/checktoken/`, {
+    return new Promise((resolve, reject) => {
+      if(this.config.AUTH_TYPE === 'token'){
+        resolve(null)
+      } else {
+
+        axios(`${this.config.APP_BASE_URL}/checktoken`, {
           headers: {
             'Authorization' : originalJWT ? `Bearer ${originalJWT}` : '',
             'Access-Control-Expose-Headers': 'Authorization, WWW-Authorization, content-length'
@@ -390,8 +391,8 @@ export class AuthService {
           resolve(newJWT ? newJWT : originalJWT);
         })
         .catch(err => reject(err));
-      })
-    }
+      }
+    })
   }
 
   //=====================================================
@@ -516,7 +517,7 @@ export class AuthService {
    *
    * @param {JWT} jwt
    */
-  private setAuth(jwt: string): void {
+  public setAuth(jwt: string): void {
     this.saveToLocalStorage('gpoauthJWT', jwt)
     this.messenger.broadcast("userAuthenticated", this.getUserFromJWT(jwt))
   };

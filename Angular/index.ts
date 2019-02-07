@@ -6,7 +6,6 @@ import { AuthService, DefaultAuthConf } from '../src/auth'
 import { GeoPlatformUser } from '../src/GeoPlatformUser'
 
 import { Subject } from 'rxjs'
-import { filter } from 'rxjs/operators'
 
 // Setup messageProvider
 
@@ -35,6 +34,11 @@ class msgProvider implements ngMessenger<Subject<MSG>> {
 
 /**
  * Expose the class that can be loaded in Angular
+ *
+ * TODO: allow differnt types here:
+ *  - Observible
+ *  - Promise
+ *  - Object
  */
 export function ngGpoauthFactory(config?: AuthConfig): AuthService {
     return new AuthService(config || DefaultAuthConf,  new msgProvider())
