@@ -43,12 +43,12 @@ See the [Configuration](https://github.com/GeoPlatform/ng-gpoauth#configuration)
 
 You will first need to register a provider for using `AuthService` with Dependency Injection.
 > **NOTE:**
-> The import is `ng-gpoauth/Angular` for Angular 2+
+> The import is `ng-gpoauth/angular` for Angular 2+
 
 ```javascript
 // app.module.ts
 
-import { ngGpoauthFactory, AuthService } from 'ng-gpoauth/Angular';
+import { ngGpoauthFactory, AuthService } from 'ng-gpoauth/angular';
 import { authConfig } from './myConfig';
 
 // Pass settings in : get Auth Service back
@@ -75,7 +75,7 @@ Using in a component:
 ```javascript
 // app.component.ts
 
-import { AuthService, GeoPlatformUser } from 'ng-gpoauth/Angular'
+import { AuthService, GeoPlatformUser } from 'ng-gpoauth/angular'
 
 @Component({...})
 export class AppComponent {
@@ -113,7 +113,6 @@ authMsg.on('userSignOut', (evt) => {
 The Angular (2+) can use the `raw()` method to obtain the raw `rxjs` Subscription related to auth events:
 ```javascript
 import { Subject } from 'rxjs'
-import { filter } from 'rxjs/operators'
 
 // AuthService init code ...
 
