@@ -259,14 +259,20 @@ class AuthService {
         // this.createIframe(`${this.config.IDP_BASE_URL}/auth/logout`)
         // Save JWT to send with final request to revoke it
         self.removeAuth(); // purge the JWT
-        return getJson(`${this.config.APP_BASE_URL}/revoke?sso=true`, this.getJWT())
-            .then(() => {
-            if (this.config.LOGOUT_URL)
-                window.location.href = this.config.LOGOUT_URL;
-            if (this.config.FORCE_LOGIN)
-                self.forceLogin();
-        })
-            .catch((err) => console.log('Error logging out: ', err));
+        return new Promise((resolve, reject) => {
+            getJson(`${this.config.APP_BASE_URL}/revoke?sso=true`, this.getJWT())
+                .then(() => {
+                if (this.config.LOGOUT_URL)
+                    window.location.href = this.config.LOGOUT_URL;
+                if (this.config.FORCE_LOGIN)
+                    self.forceLogin();
+                resolve();
+            })
+                .catch((err) => {
+                console.log('Error logging out: ', err);
+                reject(err);
+            });
+        });
     }
     ;
     /**
@@ -786,7 +792,7 @@ class msgProvider {
  * @return {?}
  */
 function ngGpoauthFactory$1(config) {
-    return new AuthService(config || DefaultAuthConf, new msgProvider());
+    return new AuthService(Object.assign({}, DefaultAuthConf, config), new msgProvider());
 }
 
 /**

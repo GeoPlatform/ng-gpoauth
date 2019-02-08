@@ -331,14 +331,20 @@ AuthService = /** @class */ (function () {
         // this.createIframe(`${this.config.IDP_BASE_URL}/auth/logout`)
         // Save JWT to send with final request to revoke it
         self.removeAuth(); // purge the JWT
-        return getJson(this.config.APP_BASE_URL + "/revoke?sso=true", this.getJWT())
-            .then(function () {
-            if (_this.config.LOGOUT_URL)
-                window.location.href = _this.config.LOGOUT_URL;
-            if (_this.config.FORCE_LOGIN)
-                self.forceLogin();
-        })
-            .catch(function (err) { return console.log('Error logging out: ', err); });
+        return new Promise(function (resolve, reject) {
+            getJson(_this.config.APP_BASE_URL + "/revoke?sso=true", _this.getJWT())
+                .then(function () {
+                if (_this.config.LOGOUT_URL)
+                    window.location.href = _this.config.LOGOUT_URL;
+                if (_this.config.FORCE_LOGIN)
+                    self.forceLogin();
+                resolve();
+            })
+                .catch(function (err) {
+                console.log('Error logging out: ', err);
+                reject(err);
+            });
+        });
     };
     /**
      * Optional force redirect for non-public services
@@ -1141,7 +1147,7 @@ var msgProvider = /** @class */ (function () {
  * @return {?}
  */
 function ngGpoauthFactory$1(config) {
-    return new AuthService(config || DefaultAuthConf, new msgProvider());
+    return new AuthService(Object.assign({}, DefaultAuthConf, config), new msgProvider());
 }
 
 /**

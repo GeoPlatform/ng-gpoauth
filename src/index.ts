@@ -11,7 +11,7 @@ import { msgProvider } from './angular/index'
  *  - Object
  */
 export function ngGpoauthFactory(config?: AuthConfig): AuthService {
-    return new AuthService(config || DefaultAuthConf,  new msgProvider())
+    return new AuthService(Object.assign({}, DefaultAuthConf, config),  new msgProvider())
 }
 
 // Expose internal types

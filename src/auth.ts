@@ -168,7 +168,7 @@ export class AuthService {
   /**
    * Performs background logout and requests jwt revokation
    */
-  logout() {
+  logout(): Promise<void>{
     const self = this;
     // Create iframe to manually call the logout and remove gpoauth cookie
     // https://stackoverflow.com/questions/13758207/why-is-passportjs-in-node-not-removing-session-on-logout#answer-33786899
@@ -177,12 +177,19 @@ export class AuthService {
     // Save JWT to send with final request to revoke it
     self.removeAuth() // purge the JWT
 
-    return getJson(`${this.config.APP_BASE_URL}/revoke?sso=true`, this.getJWT())
-            .then(() => {
-              if(this.config.LOGOUT_URL) window.location.href = this.config.LOGOUT_URL
-              if(this.config.FORCE_LOGIN) self.forceLogin();
-            })
-            .catch((err: Error) => console.log('Error logging out: ', err));
+    return new Promise((resolve, reject) => {
+      getJson(`${this.config.APP_BASE_URL}/revoke?sso=true`, this.getJWT())
+              .then(() => {
+                if(this.config.LOGOUT_URL) window.location.href = this.config.LOGOUT_URL
+                if(this.config.FORCE_LOGIN) self.forceLogin();
+                resolve();
+              })
+              .catch((err: Error) => {
+                console.log('Error logging out: ', err);
+                reject(err);
+              });
+    })
+
   };
 
   /**

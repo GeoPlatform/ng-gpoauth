@@ -41,7 +41,7 @@ export class msgProvider implements ngMessenger<Subject<MSG>> {
  *  - Object
  */
 export function ngGpoauthFactory(config?: AuthConfig): AuthService {
-    return new AuthService(config || DefaultAuthConf,  new msgProvider())
+    return new AuthService(Object.assign({}, DefaultAuthConf, config),  new msgProvider())
 }
 
 // Expose internal types

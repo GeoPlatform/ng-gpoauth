@@ -52,7 +52,7 @@ export declare class AuthService {
     /**
      * Performs background logout and requests jwt revokation
      */
-    logout(): import("../../../../../../Users/forestg/dev/ngpi/ng-gpoauth/node_modules/axios").Promise<void>;
+    logout(): Promise<void>;
     /**
      * Optional force redirect for non-public services
      */
