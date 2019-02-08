@@ -129,7 +129,7 @@ AuthService = /** @class */ (function () {
         });
         /** @type {?} */
         var user = self.init();
-        if (!user && this.config.AUTH_TYPE === 'grant')
+        if (this.config.ALLOW_SSO_LOGIN && !user && this.config.AUTH_TYPE === 'grant')
             self.ssoCheck();
     }
     /**
@@ -301,7 +301,7 @@ AuthService = /** @class */ (function () {
         }
         else {
             // Iframe login
-            if (this.config.ALLOWIFRAMELOGIN) {
+            if (this.config.ALLOW_IFRAME_LOGIN) {
                 this.messenger.broadcast('auth:requireLogin');
                 // Redirect login
             }
@@ -474,14 +474,14 @@ AuthService = /** @class */ (function () {
      * Below is a table of how this function handels this method with
      * differnt configurations.
      *  - FORCE_LOGIN : Horizontal
-     *  - ALLOWIFRAMELOGIN : Vertical
+     *  - ALLOW_IFRAME_LOGIN : Vertical
      *
      *
      * getUser  | T | F (FORCE_LOGIN)
      * -----------------------------
      * T        | 1 | 2
      * F        | 3 | 4
-     * (ALLOWIFRAMELOGIN)
+     * (ALLOW_IFRAME_LOGIN)
      *
      * Cases:
      * 1. Delay resolve function till user is logged in
@@ -505,14 +505,14 @@ AuthService = /** @class */ (function () {
      * Below is a table of how this function handels this method with
      * differnt configurations.
      *  - FORCE_LOGIN : Horizontal
-     *  - ALLOWIFRAMELOGIN : Vertical
+     *  - ALLOW_IFRAME_LOGIN : Vertical
      *
      *
      * getUser  | T | F (FORCE_LOGIN)
      * -----------------------------
      * T        | 1 | 2
      * F        | 3 | 4
-     * (ALLOWIFRAMELOGIN)
+     * (ALLOW_IFRAME_LOGIN)
      *
      * Cases:
      * 1. Delay resolve function till user is logged in
@@ -536,14 +536,14 @@ AuthService = /** @class */ (function () {
      * Below is a table of how this function handels this method with
      * differnt configurations.
      *  - FORCE_LOGIN : Horizontal
-     *  - ALLOWIFRAMELOGIN : Vertical
+     *  - ALLOW_IFRAME_LOGIN : Vertical
      *
      *
      * getUser  | T | F (FORCE_LOGIN)
      * -----------------------------
      * T        | 1 | 2
      * F        | 3 | 4
-     * (ALLOWIFRAMELOGIN)
+     * (ALLOW_IFRAME_LOGIN)
      *
      * Cases:
      * 1. Delay resolve function till user is logged in
@@ -574,20 +574,20 @@ AuthService = /** @class */ (function () {
                     resolve(user);
                 }
                 else {
-                    // Case 1 - ALLOWIFRAMELOGIN: true | FORCE_LOGIN: true
-                    if (_this.config.ALLOWIFRAMELOGIN && _this.config.FORCE_LOGIN) {
+                    // Case 1 - ALLOW_IFRAME_LOGIN: true | FORCE_LOGIN: true
+                    if (_this.config.ALLOW_IFRAME_LOGIN && _this.config.FORCE_LOGIN) {
                         // Resolve with user once they have logged in
                         // Resolve with user once they have logged in
                         _this.messenger.on('userAuthenticated', function (event, user) {
                             resolve(user);
                         });
                     }
-                    // Case 2 - ALLOWIFRAMELOGIN: true | FORCE_LOGIN: false
-                    if (_this.config.ALLOWIFRAMELOGIN && !_this.config.FORCE_LOGIN) {
+                    // Case 2 - ALLOW_IFRAME_LOGIN: true | FORCE_LOGIN: false
+                    if (_this.config.ALLOW_IFRAME_LOGIN && !_this.config.FORCE_LOGIN) {
                         resolve(null);
                     }
-                    // Case 3 - ALLOWIFRAMELOGIN: false | FORCE_LOGIN: true
-                    if (!_this.config.ALLOWIFRAMELOGIN && _this.config.FORCE_LOGIN) {
+                    // Case 3 - ALLOW_IFRAME_LOGIN: false | FORCE_LOGIN: true
+                    if (!_this.config.ALLOW_IFRAME_LOGIN && _this.config.FORCE_LOGIN) {
                         addEventListener('message', function (event) {
                             // Handle SSO login failure
                             if (event.data === 'iframe:ssoFailed') {
@@ -596,8 +596,8 @@ AuthService = /** @class */ (function () {
                         });
                         resolve(null);
                     }
-                    // Case 4 - ALLOWIFRAMELOGIN: false | FORCE_LOGIN: false
-                    if (!_this.config.ALLOWIFRAMELOGIN && !_this.config.FORCE_LOGIN) {
+                    // Case 4 - ALLOW_IFRAME_LOGIN: false | FORCE_LOGIN: false
+                    if (!_this.config.ALLOW_IFRAME_LOGIN && !_this.config.FORCE_LOGIN) {
                         resolve(null); // or reject?
                     }
                 }
@@ -987,10 +987,12 @@ AuthService = /** @class */ (function () {
 /** @type {?} */
 var DefaultAuthConf = {
     AUTH_TYPE: 'grant',
-    ALLOWIFRAMELOGIN: false,
+    APP_BASE_URL: '',
+    // absolute path // use . for relative path
+    ALLOW_IFRAME_LOGIN: true,
     FORCE_LOGIN: false,
     ALLOW_DEV_EDITS: false,
-    APP_BASE_URL: '' // absolute path // use . for relative path
+    ALLOW_SSO_LOGIN: true
 };
 
 /**

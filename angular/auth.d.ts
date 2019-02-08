@@ -87,14 +87,14 @@ export declare class AuthService {
      * Below is a table of how this function handels this method with
      * differnt configurations.
      *  - FORCE_LOGIN : Horizontal
-     *  - ALLOWIFRAMELOGIN : Vertical
+     *  - ALLOW_IFRAME_LOGIN : Vertical
      *
      *
      * getUser  | T | F (FORCE_LOGIN)
      * -----------------------------
      * T        | 1 | 2
      * F        | 3 | 4
-     * (ALLOWIFRAMELOGIN)
+     * (ALLOW_IFRAME_LOGIN)
      *
      * Cases:
      * 1. Delay resolve function till user is logged in

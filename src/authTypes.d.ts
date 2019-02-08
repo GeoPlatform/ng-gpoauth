@@ -18,8 +18,9 @@ export type AuthConfig = {
   AUTH_TYPE?: 'grant' | 'token'
   IDP_BASE_URL?: string
   APP_BASE_URL?: string
+  ALLOW_SSO_LOGIN?: boolean
   APP_ID?: boolean
-  ALLOWIFRAMELOGIN?: boolean
+  ALLOW_IFRAME_LOGIN?: boolean
   FORCE_LOGIN?: boolean
   CALLBACK?: string
   LOGIN_URL?: string
@@ -55,10 +56,10 @@ type IDPRole = 'admin'
 
 
 export type authMessage = 'userAuthenticated'
-                 | 'userSignOut'
-                 | 'auth:requireLogin'
-                 | 'auth:iframeLoginShow'
-                 | 'auth:iframeLoginHide'
+                        | 'userSignOut'
+                        | 'auth:requireLogin'
+                        | 'auth:iframeLoginShow'
+                        | 'auth:iframeLoginHide'
 
 /**
  * @type userProfile
