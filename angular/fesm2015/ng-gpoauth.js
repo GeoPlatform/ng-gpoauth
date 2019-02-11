@@ -482,8 +482,8 @@ class AuthService {
                     /** @type {?} */
                     const header = resp.headers['authorization'];
                     /** @type {?} */
-                    const newJWT = header && header.replace('Bearer ', '');
-                    if (newJWT)
+                    const newJWT = header && header.replace('Bearer', '').trim();
+                    if (header && newJWT.length)
                         this.setAuth(newJWT);
                     resolve(newJWT ? newJWT : originalJWT);
                 })

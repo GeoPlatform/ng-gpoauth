@@ -49,6 +49,8 @@ You will first need to register a provider for using `AuthService` with Dependen
 // app.module.ts
 
 import { ngGpoauthFactory, AuthService } from 'ng-gpoauth/angular';
+import { TokenInterceptor } from 'ng-gpoauth/angular'
+
 import { authConfig } from './myConfig';
 
 // Pass settings in : get Auth Service back
@@ -65,6 +67,12 @@ const authService = ngGpoauthFactory(authConfig);
         provide: AuthService,
         useValue: authService
       },
+      // Setup handler for sending and receiving tokens from backend service
+      {
+        provide: HTTP_INTERCEPTORS,
+        useClass: TokenInterceptor,
+        multi: true
+      }
       ...
   ],
   bootstrap: [AppComponent]

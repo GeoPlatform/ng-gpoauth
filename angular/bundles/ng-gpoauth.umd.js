@@ -709,8 +709,8 @@
                             /** @type {?} */
                             var header = resp.headers['authorization'];
                             /** @type {?} */
-                            var newJWT = header && header.replace('Bearer ', '');
-                            if (newJWT)
+                            var newJWT = header && header.replace('Bearer', '').trim();
+                            if (header && newJWT.length)
                                 _this.setAuth(newJWT);
                             resolve(newJWT ? newJWT : originalJWT);
                         })

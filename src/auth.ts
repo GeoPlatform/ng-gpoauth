@@ -392,9 +392,10 @@ export class AuthService {
         })
         .then(resp => {
           const header = resp.headers['authorization']
-          const newJWT = header && header.replace('Bearer ','')
-          if(newJWT) this.setAuth(newJWT);
+          const newJWT = header && header.replace('Bearer','').trim();
 
+          if(header && newJWT.length)
+            this.setAuth(newJWT);
           resolve(newJWT ? newJWT : originalJWT);
         })
         .catch(err => reject(err));
