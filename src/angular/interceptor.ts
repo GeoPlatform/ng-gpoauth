@@ -16,7 +16,6 @@ import { AuthService } from '../auth';
 export class TokenInterceptor implements HttpInterceptor {
     constructor(private authService: AuthService) {}
     intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-        let updatedRequest;
 
         // TODO: we need to check for expiration and do a preflight to
         // /checktoken if the current token is expired
@@ -24,17 +23,13 @@ export class TokenInterceptor implements HttpInterceptor {
         // ====== For sending token (with request) ======//
 
         const jwt = this.authService.getJWT();
-        if(!jwt){
-            // Carry on... nothing to do here
-            updatedRequest = request;
-        } else {
+        if(jwt){
             // Send our current token
-            let clone = request.clone({
-            setHeaders: {
-                Authorization: `Bearer ${jwt}`
-            }
+            request = request.clone({
+                setHeaders: {
+                    Authorization: `Bearer ${jwt}`
+                }
             });
-            updatedRequest = clone;
         }
 
         // ====== For sending token (with request) ======//
@@ -87,7 +82,7 @@ export class TokenInterceptor implements HttpInterceptor {
 
         // setup and return with handlers
         return next
-                .handle(updatedRequest)
+                .handle(request)
                 .do(responseHandler, responseFailureHandler);
   }
 }

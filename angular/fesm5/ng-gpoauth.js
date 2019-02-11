@@ -1015,21 +1015,14 @@ var TokenInterceptor = /** @class */ (function () {
      */
     function (request, next) {
         /** @type {?} */
-        var updatedRequest;
-        /** @type {?} */
         var jwt = this.authService.getJWT();
-        if (!jwt) {
-            // Carry on... nothing to do here
-            updatedRequest = request;
-        }
-        else {
-            /** @type {?} */
-            var clone = request.clone({
+        if (jwt) {
+            // Send our current token
+            request = request.clone({
                 setHeaders: {
                     Authorization: "Bearer " + jwt
                 }
             });
-            updatedRequest = clone;
         }
         /**
          * Handler for successful responses returned from the server.
@@ -1073,7 +1066,7 @@ var TokenInterceptor = /** @class */ (function () {
         // ==============================================//
         // setup and return with handlers
         return next
-            .handle(updatedRequest)
+            .handle(request)
             .do(responseHandler, responseFailureHandler);
     };
     TokenInterceptor.decorators = [
