@@ -87,6 +87,11 @@ export class AppComponent {
     }
 }
 ```
+> Developer Notes:
+>
+> `ng serve` will force reloads when SSO is enabled. When running locally with
+> ng serve make sure to set `ALLOW_SSO_LOGIN` to `false`.
+
 
 ### AngularJS (Angular 1)
 
@@ -176,8 +181,10 @@ The following are property that sould be found at the top level of the GeoPlator
 | property | required | description | type | default
 |---|---|---|---|---|
 | IDP_BASE_URL | yes | URL of the Oauth serice. | string | N/A |
+| APP_BASE_URL | no | Allows for settings a URL prefix checking `node-gpoauth` endpoints like `/checktoken`. Can be either an absolute or relative path to prefix to reqeusts: Example: '/authendpoints' | string | "" |
 | AUTH_TYPE | no | Type of token to request from gpoauth.  | token, grant | grant |
-| ALLOWIFRAMELOGIN | no | Allow `ng-gpoauth` to use an ifame instead of redirect for authenticating a user. This will allow users to retain their in-memory edits while authenticating. | boolean | false |
+| ALLOW_SSO_LOGIN | no | If enabled `ng-gpoauth` will create an invisible background iframe for logging in. | boolean | true |
+| ALLOW_IFRAME_LOGIN | no | Allow `ng-gpoauth` to use an ifame instead of redirect for authenticating a user. This will allow users to retain their in-memory edits while authenticating. | boolean | false |
 | FORCE_LOGIN | no | Should user be forced to redirct or show login screen when its detected that they are unauthenticated | boolean | false |
 | APP_ID | yes* | Id (client_id) of appliction registerd with the Oauth service provider. | string | N/A |
 | CALLBACK | no | URL to call back when re-directed from oauth authentication loop. | string | /login |
