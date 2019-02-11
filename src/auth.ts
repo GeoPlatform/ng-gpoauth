@@ -81,7 +81,7 @@ export class AuthService {
 
   private ssoCheck(): void {
     const self = this;
-    const ssoURL = `/login?sso=true&cachebuster=${(new Date()).getTime()}`
+    const ssoURL = `${this.config.APP_BASE_URL}/login?sso=true&cachebuster=${(new Date()).getTime()}`
     const ssoIframe = this.createIframe(ssoURL)
 
     // Setup ssoIframe specific handlers

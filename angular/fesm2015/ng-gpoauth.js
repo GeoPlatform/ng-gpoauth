@@ -160,7 +160,7 @@ class AuthService {
         /** @type {?} */
         const self = this;
         /** @type {?} */
-        const ssoURL = `/login?sso=true&cachebuster=${(new Date()).getTime()}`;
+        const ssoURL = `${this.config.APP_BASE_URL}/login?sso=true&cachebuster=${(new Date()).getTime()}`;
         /** @type {?} */
         const ssoIframe = this.createIframe(ssoURL);
         // Setup ssoIframe specific handlers

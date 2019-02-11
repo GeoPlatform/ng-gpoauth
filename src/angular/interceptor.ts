@@ -18,6 +18,9 @@ export class TokenInterceptor implements HttpInterceptor {
     intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
         let updatedRequest;
 
+        // TODO: we need to check for expiration and do a preflight to
+        // /checktoken if the current token is expired
+
         // ====== For sending token (with request) ======//
 
         const jwt = this.authService.getJWT();

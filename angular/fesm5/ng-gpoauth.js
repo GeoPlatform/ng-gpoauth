@@ -205,7 +205,7 @@ AuthService = /** @class */ (function () {
         /** @type {?} */
         var self = this;
         /** @type {?} */
-        var ssoURL = "/login?sso=true&cachebuster=" + (new Date()).getTime();
+        var ssoURL = this.config.APP_BASE_URL + "/login?sso=true&cachebuster=" + (new Date()).getTime();
         /** @type {?} */
         var ssoIframe = this.createIframe(ssoURL);
         // Setup ssoIframe specific handlers
