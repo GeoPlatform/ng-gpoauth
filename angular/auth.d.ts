@@ -39,6 +39,10 @@ export declare class AuthService {
      */
     private init;
     /**
+     * Clears the access_token property from the URL.
+     */
+    private removeTokenFromUrl;
+    /**
      * Create an invisable iframe and appends it to the bottom of the page.
      *
      * @method createIframe
@@ -112,7 +116,7 @@ export declare class AuthService {
      *
      * @returns {Promise<User>} User - the authenticated user
      */
-    getUser(): Promise<GeoPlatformUser | null>;
+    getUser(): Promise<GeoPlatformUser>;
     /**
      * Check function being used by some front end apps already.
      * (wrapper for getUser)

@@ -6,6 +6,108 @@
 
     axios = axios && axios.hasOwnProperty('default') ? axios['default'] : axios;
 
+    /*! *****************************************************************************
+    Copyright (c) Microsoft Corporation. All rights reserved.
+    Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+    this file except in compliance with the License. You may obtain a copy of the
+    License at http://www.apache.org/licenses/LICENSE-2.0
+
+    THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
+    WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+    MERCHANTABLITY OR NON-INFRINGEMENT.
+
+    See the Apache Version 2.0 License for specific language governing permissions
+    and limitations under the License.
+    ***************************************************************************** */
+    function __awaiter(thisArg, _arguments, P, generator) {
+        return new (P || (P = Promise))(function (resolve, reject) {
+            function fulfilled(value) { try {
+                step(generator.next(value));
+            }
+            catch (e) {
+                reject(e);
+            } }
+            function rejected(value) { try {
+                step(generator["throw"](value));
+            }
+            catch (e) {
+                reject(e);
+            } }
+            function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+            step((generator = generator.apply(thisArg, _arguments || [])).next());
+        });
+    }
+    function __generator(thisArg, body) {
+        var _ = { label: 0, sent: function () { if (t[0] & 1)
+                throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+        return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function () { return this; }), g;
+        function verb(n) { return function (v) { return step([n, v]); }; }
+        function step(op) {
+            if (f)
+                throw new TypeError("Generator is already executing.");
+            while (_)
+                try {
+                    if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done)
+                        return t;
+                    if (y = 0, t)
+                        op = [op[0] & 2, t.value];
+                    switch (op[0]) {
+                        case 0:
+                        case 1:
+                            t = op;
+                            break;
+                        case 4:
+                            _.label++;
+                            return { value: op[1], done: false };
+                        case 5:
+                            _.label++;
+                            y = op[1];
+                            op = [0];
+                            continue;
+                        case 7:
+                            op = _.ops.pop();
+                            _.trys.pop();
+                            continue;
+                        default:
+                            if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) {
+                                _ = 0;
+                                continue;
+                            }
+                            if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) {
+                                _.label = op[1];
+                                break;
+                            }
+                            if (op[0] === 6 && _.label < t[1]) {
+                                _.label = t[1];
+                                t = op;
+                                break;
+                            }
+                            if (t && _.label < t[2]) {
+                                _.label = t[2];
+                                _.ops.push(op);
+                                break;
+                            }
+                            if (t[2])
+                                _.ops.pop();
+                            _.trys.pop();
+                            continue;
+                    }
+                    op = body.call(thisArg, _);
+                }
+                catch (e) {
+                    op = [6, e];
+                    y = 0;
+                }
+                finally {
+                    f = t = 0;
+                }
+            if (op[0] & 5)
+                throw op[1];
+            return { value: op[0] ? op[1] : void 0, done: true };
+        }
+    }
+
     /**
      * @fileoverview added by tsickle
      * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
@@ -92,11 +194,20 @@
      * @return {?}
      */
     function getJson(url, jwt) {
-        return axios.get(url, {
-            headers: { 'Authorization': jwt ? "Bearer " + jwt : '' },
-            responseType: 'json'
-        })
-            .then(function (r) { return r.data; });
+        return __awaiter(this, void 0, void 0, function () {
+            var resp;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, axios.get(url, {
+                            headers: { 'Authorization': jwt ? "Bearer " + jwt : '' },
+                            responseType: 'json'
+                        })];
+                    case 1:
+                        resp = _a.sent();
+                        return [2 /*return*/, resp.data];
+                }
+            });
+        });
     }
     /**
      * Authentication Service
@@ -113,6 +224,7 @@
          * @param
          */
         function AuthService(config, ngMessenger) {
+            var _this = this;
             /** @type {?} */
             var self = this;
             this.config = config;
@@ -128,10 +240,11 @@
                     self.removeAuth();
                 }
             });
-            /** @type {?} */
-            var user = self.init();
-            if (this.config.ALLOW_SSO_LOGIN && !user && this.config.AUTH_TYPE === 'grant')
-                self.ssoCheck();
+            self.init()
+                .then(function (user) {
+                if (_this.config.ALLOW_SSO_LOGIN && !user && _this.config.AUTH_TYPE === 'grant')
+                    self.ssoCheck();
+            });
         }
         /**
          * Expose ngMessenger so that appliction code is able to
@@ -243,20 +356,42 @@
          * @return {?}
          */
             function () {
-                /** @type {?} */
-                var jwt = this.getJWT();
-                if (jwt)
-                    this.setAuth(jwt);
-                //clean hosturl on redirect from oauth
-                if (this.getJWTFromUrl()) {
-                    if (window.history && window.history.replaceState) {
-                        window.history.replaceState({}, 'Remove token from URL', window.location.href.replace(/[\?\&]access_token=.*\&token_type=Bearer/, ''));
-                    }
-                    else {
-                        window.location.search.replace(/[\?\&]access_token=.*\&token_type=Bearer/, '');
-                    }
+                return __awaiter(this, void 0, void 0, function () {
+                    var jwt;
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0:
+                                jwt = this.getJWT();
+                                //clean hosturl on redirect from oauth
+                                if (this.getJWTFromUrl())
+                                    this.removeTokenFromUrl();
+                                if (!jwt)
+                                    return [3 /*break*/, 1];
+                                this.setAuth(jwt);
+                                return [2 /*return*/, this.getUserFromJWT(jwt)];
+                            case 1: return [4 /*yield*/, this.getUser()];
+                            case 2:
+                                // call to checkwith Server
+                                return [2 /*return*/, _a.sent()];
+                        }
+                    });
+                });
+            };
+        /**
+         * Clears the access_token property from the URL.
+         * @return {?}
+         */
+        AuthService.prototype.removeTokenFromUrl = /**
+         * Clears the access_token property from the URL.
+         * @return {?}
+         */
+            function () {
+                if (window.history && window.history.replaceState) {
+                    window.history.replaceState({}, 'Remove token from URL', window.location.href.replace(/[\?\&]access_token=.*\&token_type=Bearer/, ''));
                 }
-                return this.getUserFromJWT(jwt);
+                else {
+                    window.location.search.replace(/[\?\&]access_token=.*\&token_type=Bearer/, '');
+                }
             };
         /**
          * Create an invisable iframe and appends it to the bottom of the page.
@@ -324,26 +459,29 @@
          * @return {?}
          */
             function () {
-                var _this = this;
-                /** @type {?} */
-                var self = this;
                 // Create iframe to manually call the logout and remove gpoauth cookie
                 // https://stackoverflow.com/questions/13758207/why-is-passportjs-in-node-not-removing-session-on-logout#answer-33786899
                 // this.createIframe(`${this.config.IDP_BASE_URL}/auth/logout`)
-                // Save JWT to send with final request to revoke it
-                self.removeAuth(); // purge the JWT
-                return new Promise(function (resolve, reject) {
-                    getJson(_this.config.APP_BASE_URL + "/revoke?sso=true", _this.getJWT())
-                        .then(function () {
-                        if (_this.config.LOGOUT_URL)
-                            window.location.href = _this.config.LOGOUT_URL;
-                        if (_this.config.FORCE_LOGIN)
-                            self.forceLogin();
-                        resolve();
-                    })
-                        .catch(function (err) {
-                        console.log('Error logging out: ', err);
-                        reject(err);
+                return __awaiter(this, void 0, void 0, function () {
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0:
+                                // Create iframe to manually call the logout and remove gpoauth cookie
+                                // https://stackoverflow.com/questions/13758207/why-is-passportjs-in-node-not-removing-session-on-logout#answer-33786899
+                                // this.createIframe(`${this.config.IDP_BASE_URL}/auth/logout`)
+                                return [4 /*yield*/, getJson(this.config.APP_BASE_URL + "/revoke?sso=true", this.getJWT())];
+                            case 1:
+                                // Create iframe to manually call the logout and remove gpoauth cookie
+                                // https://stackoverflow.com/questions/13758207/why-is-passportjs-in-node-not-removing-session-on-logout#answer-33786899
+                                // this.createIframe(`${this.config.IDP_BASE_URL}/auth/logout`)
+                                _a.sent();
+                                this.removeAuth(); // purge the JWT
+                                if (this.config.LOGOUT_URL)
+                                    window.location.href = this.config.LOGOUT_URL;
+                                if (this.config.FORCE_LOGIN)
+                                    this.forceLogin();
+                                return [2 /*return*/];
+                        }
                     });
                 });
             };
@@ -373,19 +511,24 @@
          * @return {?}
          */
             function () {
-                var _this = this;
-                /** @type {?} */
-                var JWT = this.getJWT();
-                return new Promise(function (resolve, reject) {
-                    //check to make sure we can make called
-                    if (JWT) {
-                        getJson(_this.config.IDP_BASE_URL + "/api/profile", JWT)
-                            .then(function (response) { return resolve(response); })
-                            .catch(function (err) { return reject(err); });
-                    }
-                    else {
-                        reject(null);
-                    }
+                return __awaiter(this, void 0, void 0, function () {
+                    var JWT, _a;
+                    return __generator(this, function (_b) {
+                        switch (_b.label) {
+                            case 0:
+                                JWT = this.getJWT();
+                                if (!JWT)
+                                    return [3 /*break*/, 2];
+                                return [4 /*yield*/, getJson(this.config.IDP_BASE_URL + "/api/profile", JWT)];
+                            case 1:
+                                _a = _b.sent();
+                                return [3 /*break*/, 3];
+                            case 2:
+                                _a = null;
+                                _b.label = 3;
+                            case 3: return [2 /*return*/, _a];
+                        }
+                    });
                 });
             };
         /**
@@ -454,20 +597,12 @@
             function (callback) {
                 /** @type {?} */
                 var jwt = this.getJWT();
-                // If callback provided we can treat async and call server
-                if (callback && typeof (callback) === 'function') {
-                    this.check()
-                        .then(function (user) { return callback(user); });
-                    // If no callback we have to provide a sync response (no network)
-                }
-                else {
-                    // We allow front end to get user data if grant type and expired
-                    // because they will recieve a new token automatically when
-                    // making a call to the client(application)
-                    return this.isImplicitJWT(jwt) && this.isExpired(jwt) ?
-                        null :
-                        this.getUserFromJWT(jwt);
-                }
+                // We allow front end to get user data if grant type and expired
+                // because they will recieve a new token automatically when
+                // making a call to the client(application)
+                return this.isImplicitJWT(jwt) && this.isExpired(jwt) ?
+                    null :
+                    this.getUserFromJWT(jwt);
             };
         /**
          * Promise version of get user.
@@ -563,47 +698,44 @@
          * @return {?}
          */
             function () {
-                var _this = this;
-                /** @type {?} */
-                var self = this;
-                // For basic testing
-                // this.messenger.broadcast('userAuthenticated', { name: 'username'})
-                return new Promise(function (resolve, reject) {
-                    _this.check()
-                        .then(function (user) {
-                        if (user) {
-                            resolve(user);
+                return __awaiter(this, void 0, void 0, function () {
+                    var user;
+                    var _this = this;
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0: return [4 /*yield*/, this.check()];
+                            case 1:
+                                user = _a.sent();
+                                if (user)
+                                    return [2 /*return*/, user];
+                                // Case 1 - ALLOW_IFRAME_LOGIN: true | FORCE_LOGIN: true
+                                if (this.config.ALLOW_IFRAME_LOGIN && this.config.FORCE_LOGIN) {
+                                    // Resolve with user once they have logged in
+                                    this.messenger.on('userAuthenticated', function (event, user) {
+                                        return user;
+                                    });
+                                }
+                                // Case 2 - ALLOW_IFRAME_LOGIN: true | FORCE_LOGIN: false
+                                if (this.config.ALLOW_IFRAME_LOGIN && !this.config.FORCE_LOGIN) {
+                                    return [2 /*return*/, null];
+                                }
+                                // Case 3 - ALLOW_IFRAME_LOGIN: false | FORCE_LOGIN: true
+                                if (!this.config.ALLOW_IFRAME_LOGIN && this.config.FORCE_LOGIN) {
+                                    addEventListener('message', function (event) {
+                                        // Handle SSO login failure
+                                        if (event.data === 'iframe:ssoFailed') {
+                                            return _this.getUser();
+                                        }
+                                    });
+                                    return [2 /*return*/, null];
+                                }
+                                // Case 4 - ALLOW_IFRAME_LOGIN: false | FORCE_LOGIN: false
+                                if (!this.config.ALLOW_IFRAME_LOGIN && !this.config.FORCE_LOGIN) {
+                                    return [2 /*return*/, null]; // or reject?
+                                }
+                                return [2 /*return*/];
                         }
-                        else {
-                            // Case 1 - ALLOW_IFRAME_LOGIN: true | FORCE_LOGIN: true
-                            if (_this.config.ALLOW_IFRAME_LOGIN && _this.config.FORCE_LOGIN) {
-                                // Resolve with user once they have logged in
-                                // Resolve with user once they have logged in
-                                _this.messenger.on('userAuthenticated', function (event, user) {
-                                    resolve(user);
-                                });
-                            }
-                            // Case 2 - ALLOW_IFRAME_LOGIN: true | FORCE_LOGIN: false
-                            if (_this.config.ALLOW_IFRAME_LOGIN && !_this.config.FORCE_LOGIN) {
-                                resolve(null);
-                            }
-                            // Case 3 - ALLOW_IFRAME_LOGIN: false | FORCE_LOGIN: true
-                            if (!_this.config.ALLOW_IFRAME_LOGIN && _this.config.FORCE_LOGIN) {
-                                addEventListener('message', function (event) {
-                                    // Handle SSO login failure
-                                    if (event.data === 'iframe:ssoFailed') {
-                                        resolve(self.getUser());
-                                    }
-                                });
-                                resolve(null);
-                            }
-                            // Case 4 - ALLOW_IFRAME_LOGIN: false | FORCE_LOGIN: false
-                            if (!_this.config.ALLOW_IFRAME_LOGIN && !_this.config.FORCE_LOGIN) {
-                                resolve(null); // or reject?
-                            }
-                        }
-                    })
-                        .catch(function (err) { return console.log(err); });
+                    });
                 });
             };
         /**
@@ -628,29 +760,42 @@
          * @return {?}
          */
             function () {
-                var _this = this;
-                return new Promise(function (resolve, rej) {
-                    /** @type {?} */
-                    var jwt = _this.getJWT();
-                    // If no local JWT
-                    if (!jwt)
-                        return _this.checkWithClient("")
-                            .then(function (jwt) { return jwt.length ? _this.getUserFromJWT(jwt) : null; });
-                    if (!jwt)
-                        return resolve(null);
-                    if (!_this.isImplicitJWT(jwt)) { // Grant token
-                        // Grant token
-                        return _this.isExpired(jwt) ?
-                            _this.checkWithClient(jwt)
-                                .then(function (jwt) { return _this.getUserFromJWT(jwt); }) : // Check with server
-                            resolve(_this.getUserFromJWT(jwt));
-                    }
-                    else { // Implicit JWT
-                        // Implicit JWT
-                        return _this.isExpired(jwt) ?
-                            Promise.reject(null) :
-                            resolve(_this.getUserFromJWT(jwt));
-                    }
+                return __awaiter(this, void 0, void 0, function () {
+                    var jwt, freshJwt, _a;
+                    var _this = this;
+                    return __generator(this, function (_b) {
+                        switch (_b.label) {
+                            case 0:
+                                jwt = this.getJWT();
+                                if (!!jwt)
+                                    return [3 /*break*/, 2];
+                                return [4 /*yield*/, this.checkWithClient("")];
+                            case 1:
+                                freshJwt = _b.sent();
+                                return [2 /*return*/, jwt && jwt.length ?
+                                        this.getUserFromJWT(freshJwt) :
+                                        null];
+                            case 2:
+                                if (!!this.isImplicitJWT(jwt))
+                                    return [3 /*break*/, 6];
+                                if (!this.isExpired(jwt))
+                                    return [3 /*break*/, 4];
+                                return [4 /*yield*/, this.checkWithClient(jwt)
+                                        .then(function (jwt) { return _this.getUserFromJWT(jwt); })];
+                            case 3:
+                                _a = _b.sent();
+                                return [3 /*break*/, 5];
+                            case 4:
+                                _a = this.getUserFromJWT(jwt);
+                                _b.label = 5;
+                            case 5: // Grant token
+                                return [2 /*return*/, _a];
+                            case 6: // Implicit JWT
+                                return [2 /*return*/, this.isExpired(jwt) ?
+                                        Promise.reject(null) :
+                                        this.getUserFromJWT(jwt)];
+                        }
+                    });
                 });
             };
         /**
@@ -693,29 +838,28 @@
          * @return {?}
          */
             function (originalJWT) {
-                var _this = this;
-                return new Promise(function (resolve, reject) {
-                    if (_this.config.AUTH_TYPE === 'token') {
-                        resolve(null);
-                    }
-                    else {
-                        axios(_this.config.APP_BASE_URL + "/checktoken", {
-                            headers: {
-                                'Authorization': originalJWT ? "Bearer " + originalJWT : '',
-                                'Access-Control-Expose-Headers': 'Authorization, WWW-Authorization, content-length'
-                            }
-                        })
-                            .then(function (resp) {
-                            /** @type {?} */
-                            var header = resp.headers['authorization'];
-                            /** @type {?} */
-                            var newJWT = header && header.replace('Bearer', '').trim();
-                            if (header && newJWT.length)
-                                _this.setAuth(newJWT);
-                            resolve(newJWT ? newJWT : originalJWT);
-                        })
-                            .catch(function (err) { return reject(err); });
-                    }
+                return __awaiter(this, void 0, void 0, function () {
+                    var resp, header, newJWT;
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0:
+                                if (!(this.config.AUTH_TYPE === 'token'))
+                                    return [3 /*break*/, 1];
+                                return [2 /*return*/, null];
+                            case 1: return [4 /*yield*/, axios(this.config.APP_BASE_URL + "/checktoken", {
+                                    headers: {
+                                        'Authorization': originalJWT ? "Bearer " + originalJWT : ''
+                                    }
+                                })];
+                            case 2:
+                                resp = _a.sent();
+                                header = resp.headers['authorization'];
+                                newJWT = header && header.replace('Bearer', '').trim();
+                                if (header && newJWT.length)
+                                    this.setAuth(newJWT);
+                                return [2 /*return*/, newJWT ? newJWT : originalJWT];
+                        }
+                    });
                 });
             };
         //=====================================================

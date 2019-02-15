@@ -2,12 +2,12 @@ import { ngMessenger, AuthConfig, JWT, UserProfile } from '../src/authTypes'
 import { GeoPlatformUser } from './GeoPlatformUser'
 import axios from 'axios'
 
-function getJson(url: string, jwt?: string) {
-  return axios.get(url, {
-                          headers: { 'Authorization' : jwt ? `Bearer ${jwt}` : '' },
-                          responseType: 'json'
-                        })
-                        .then(r => r.data);
+async function getJson(url: string, jwt?: string) {
+  const resp = await axios.get(url, {
+                        headers: { 'Authorization' : jwt ? `Bearer ${jwt}` : '' },
+                        responseType: 'json'
+                      })
+  return resp.data;
 }
 
 /**
@@ -44,8 +44,11 @@ export class AuthService {
       }
     })
 
-    const user = self.init()
-    if(this.config.ALLOW_SSO_LOGIN && !user && this.config.AUTH_TYPE === 'grant') self.ssoCheck()
+    self.init()
+      .then(user => {
+        if(this.config.ALLOW_SSO_LOGIN && !user && this.config.AUTH_TYPE === 'grant')
+          self.ssoCheck()
+      });
   }
 
   /**
@@ -178,29 +181,17 @@ export class AuthService {
   /**
    * Performs background logout and requests jwt revokation
    */
-  logout(): Promise<void>{
-    const self = this;
+  async logout(): Promise<void> {
     // Create iframe to manually call the logout and remove gpoauth cookie
     // https://stackoverflow.com/questions/13758207/why-is-passportjs-in-node-not-removing-session-on-logout#answer-33786899
     // this.createIframe(`${this.config.IDP_BASE_URL}/auth/logout`)
 
-    // Save JWT to send with final request to revoke it
-    self.removeAuth() // purge the JWT
+    await getJson(`${this.config.APP_BASE_URL}/revoke?sso=true`, this.getJWT())
+    this.removeAuth() // purge the JWT
 
-    return new Promise((resolve, reject) => {
-      getJson(`${this.config.APP_BASE_URL}/revoke?sso=true`, this.getJWT())
-              .then(() => {
-                if(this.config.LOGOUT_URL) window.location.href = this.config.LOGOUT_URL
-                if(this.config.FORCE_LOGIN) self.forceLogin();
-                resolve();
-              })
-              .catch((err: Error) => {
-                console.log('Error logging out: ', err);
-                reject(err);
-              });
-    })
-
-  };
+    if(this.config.LOGOUT_URL) window.location.href = this.config.LOGOUT_URL
+    if(this.config.FORCE_LOGIN) this.forceLogin();
+  }
 
   /**
    * Optional force redirect for non-public services
@@ -212,20 +203,12 @@ export class AuthService {
   /**
    * Get protected user profile
    */
-  getOauthProfile(): Promise<UserProfile> {
+  async getOauthProfile(): Promise<UserProfile> {
     const JWT = this.getJWT();
 
-    return new Promise<UserProfile>((resolve, reject) => {
-      //check to make sure we can make called
-      if (JWT) {
-        getJson(`${this.config.IDP_BASE_URL}/api/profile`, JWT)
-          .then((response: UserProfile) =>  resolve(response))
-          .catch(err => reject(err))
-      } else {
-        reject(null)
-      }
-
-    })
+    return JWT ?
+      await getJson(`${this.config.IDP_BASE_URL}/api/profile`, JWT) :
+      null;
   };
 
   /**
@@ -255,20 +238,12 @@ export class AuthService {
    */
   getUserSync(callback?: (user: GeoPlatformUser) => any): GeoPlatformUser {
     const jwt = this.getJWT();
-    // If callback provided we can treat async and call server
-    if(callback && typeof(callback) === 'function'){
-      this.check()
-      .then(user => callback(user));
-
-      // If no callback we have to provide a sync response (no network)
-    } else {
       // We allow front end to get user data if grant type and expired
       // because they will recieve a new token automatically when
       // making a call to the client(application)
       return this.isImplicitJWT(jwt) && this.isExpired(jwt) ?
               null :
               this.getUserFromJWT(jwt);
-    }
   }
 
   /**
@@ -302,47 +277,39 @@ export class AuthService {
    *
    * @returns {Promise<User>} User - the authenticated user
    */
-  getUser(): Promise<GeoPlatformUser | null> {
-    const self = this;
-
+  async getUser(): Promise<GeoPlatformUser> {
     // For basic testing
     // this.messenger.broadcast('userAuthenticated', { name: 'username'})
 
-    return new Promise<GeoPlatformUser | null>((resolve, reject) => {
-      this.check()
-      .then(user => {
-        if(user) {
-          resolve(user)
-        } else {
-          // Case 1 - ALLOW_IFRAME_LOGIN: true | FORCE_LOGIN: true
-          if(this.config.ALLOW_IFRAME_LOGIN && this.config.FORCE_LOGIN){
-            // Resolve with user once they have logged in
-            this.messenger.on('userAuthenticated', (event: Event, user: GeoPlatformUser) => {
-              resolve(user)
-            })
-          }
-          // Case 2 - ALLOW_IFRAME_LOGIN: true | FORCE_LOGIN: false
-          if(this.config.ALLOW_IFRAME_LOGIN && !this.config.FORCE_LOGIN){
-            resolve(null)
-          }
-          // Case 3 - ALLOW_IFRAME_LOGIN: false | FORCE_LOGIN: true
-          if(!this.config.ALLOW_IFRAME_LOGIN && this.config.FORCE_LOGIN){
-            addEventListener('message', (event: any) => {
-              // Handle SSO login failure
-              if(event.data === 'iframe:ssoFailed'){
-                resolve(self.getUser())
-              }
-            })
-            resolve(null)
-          }
-          // Case 4 - ALLOW_IFRAME_LOGIN: false | FORCE_LOGIN: false
-          if(!this.config.ALLOW_IFRAME_LOGIN && !this.config.FORCE_LOGIN){
-            resolve(null) // or reject?
-          }
+    // return new Promise<GeoPlatformUser>((resolve, reject) => {
+    const user = await this.check();
+    if(user) return user
+
+    // Case 1 - ALLOW_IFRAME_LOGIN: true | FORCE_LOGIN: true
+    if(this.config.ALLOW_IFRAME_LOGIN && this.config.FORCE_LOGIN){
+      // Resolve with user once they have logged in
+      this.messenger.on('userAuthenticated', (event: Event, user: GeoPlatformUser) => {
+        return user
+      })
+    }
+    // Case 2 - ALLOW_IFRAME_LOGIN: true | FORCE_LOGIN: false
+    if(this.config.ALLOW_IFRAME_LOGIN && !this.config.FORCE_LOGIN){
+      return null
+    }
+    // Case 3 - ALLOW_IFRAME_LOGIN: false | FORCE_LOGIN: true
+    if(!this.config.ALLOW_IFRAME_LOGIN && this.config.FORCE_LOGIN){
+      addEventListener('message', (event: any) => {
+        // Handle SSO login failure
+        if(event.data === 'iframe:ssoFailed'){
+          return this.getUser()
         }
       })
-      .catch((err: Error) => console.log(err))
-    })
+      return null
+    }
+    // Case 4 - ALLOW_IFRAME_LOGIN: false | FORCE_LOGIN: false
+    if(!this.config.ALLOW_IFRAME_LOGIN && !this.config.FORCE_LOGIN){
+      return null // or reject?
+    }
   };
 
   /**
@@ -352,27 +319,28 @@ export class AuthService {
    * @method check
    * @returns {User} - ng-common user object or null
    */
-  check(): Promise<GeoPlatformUser>{
-    return new Promise((resolve, rej) => {
-      const jwt = this.getJWT();
+  async check(): Promise<GeoPlatformUser>{
+    const jwt = this.getJWT();
 
-      // If no local JWT
-      if(!jwt)
-        return this.checkWithClient("")
-                   .then(jwt => jwt.length ? this.getUserFromJWT(jwt) : null);
+    // If no local JWT
+    if(!jwt) {
+      const freshJwt = await this.checkWithClient("");
 
-      if(!jwt) return resolve(null);
-      if(!this.isImplicitJWT(jwt)){ // Grant token
-        return this.isExpired(jwt) ?
-                this.checkWithClient(jwt)
-                  .then(jwt => this.getUserFromJWT(jwt)) : // Check with server
-                  resolve(this.getUserFromJWT(jwt));
-      } else { // Implicit JWT
-        return this.isExpired(jwt) ?
-                Promise.reject(null) :
-                resolve(this.getUserFromJWT(jwt));
-      }
-    })
+      return jwt && jwt.length ?
+              this.getUserFromJWT(freshJwt) :
+              null;
+    }
+    if(!this.isImplicitJWT(jwt)){ // Grant token
+      return this.isExpired(jwt) ?
+              await this.checkWithClient(jwt)
+                .then(jwt => this.getUserFromJWT(jwt)) : // Check with server
+              this.getUserFromJWT(jwt);
+
+    } else { // Implicit JWT
+      return this.isExpired(jwt) ?
+              Promise.reject(null) :
+              this.getUserFromJWT(jwt);
+    }
   }
 
   /**
@@ -388,29 +356,23 @@ export class AuthService {
    *
    * @return {Promise<jwt>} - promise resolving with a JWT
    */
-  checkWithClient(originalJWT: string): Promise<any> {
-    return new Promise((resolve, reject) => {
-      if(this.config.AUTH_TYPE === 'token'){
-        resolve(null)
-      } else {
+  async checkWithClient(originalJWT: string): Promise<any> {
+    if(this.config.AUTH_TYPE === 'token'){
+      return null
+    } else {
 
-        axios(`${this.config.APP_BASE_URL}/checktoken`, {
-          headers: {
-            'Authorization' : originalJWT ? `Bearer ${originalJWT}` : '',
-            'Access-Control-Expose-Headers': 'Authorization, WWW-Authorization, content-length'
-          }
-        })
-        .then(resp => {
-          const header = resp.headers['authorization']
-          const newJWT = header && header.replace('Bearer','').trim();
+      const resp = await axios(`${this.config.APP_BASE_URL}/checktoken`, {
+                    headers: {
+                      'Authorization' : originalJWT ? `Bearer ${originalJWT}` : ''
+                    }
+                  })
 
-          if(header && newJWT.length)
-            this.setAuth(newJWT);
-          resolve(newJWT ? newJWT : originalJWT);
-        })
-        .catch(err => reject(err));
-      }
-    })
+      const header = resp.headers['authorization']
+      const newJWT = header && header.replace('Bearer','').trim();
+
+      if(header && newJWT.length) this.setAuth(newJWT);
+      return newJWT ? newJWT : originalJWT;
+    }
   }
 
   //=====================================================

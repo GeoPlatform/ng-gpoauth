@@ -1,3 +1,4 @@
+import { __awaiter } from 'tslib';
 import axios from 'axios';
 import { Subject } from 'rxjs';
 import { Injectable } from '@angular/core';
@@ -78,11 +79,14 @@ class GeoPlatformUser {
  * @return {?}
  */
 function getJson(url, jwt) {
-    return axios.get(url, {
-        headers: { 'Authorization': jwt ? `Bearer ${jwt}` : '' },
-        responseType: 'json'
-    })
-        .then(r => r.data);
+    return __awaiter(this, void 0, void 0, function* () {
+        /** @type {?} */
+        const resp = yield axios.get(url, {
+            headers: { 'Authorization': jwt ? `Bearer ${jwt}` : '' },
+            responseType: 'json'
+        });
+        return resp.data;
+    });
 }
 /**
  * Authentication Service
@@ -110,10 +114,11 @@ class AuthService {
                 self.removeAuth();
             }
         });
-        /** @type {?} */
-        const user = self.init();
-        if (this.config.ALLOW_SSO_LOGIN && !user && this.config.AUTH_TYPE === 'grant')
-            self.ssoCheck();
+        self.init()
+            .then(user => {
+            if (this.config.ALLOW_SSO_LOGIN && !user && this.config.AUTH_TYPE === 'grant')
+                self.ssoCheck();
+        });
     }
     /**
      * Expose ngMessenger so that appliction code is able to
@@ -190,20 +195,33 @@ class AuthService {
      * @return {?}
      */
     init() {
-        /** @type {?} */
-        const jwt = this.getJWT();
-        if (jwt)
-            this.setAuth(jwt);
-        //clean hosturl on redirect from oauth
-        if (this.getJWTFromUrl()) {
-            if (window.history && window.history.replaceState) {
-                window.history.replaceState({}, 'Remove token from URL', window.location.href.replace(/[\?\&]access_token=.*\&token_type=Bearer/, ''));
+        return __awaiter(this, void 0, void 0, function* () {
+            /** @type {?} */
+            const jwt = this.getJWT();
+            //clean hosturl on redirect from oauth
+            if (this.getJWTFromUrl())
+                this.removeTokenFromUrl();
+            if (jwt) {
+                this.setAuth(jwt);
+                return this.getUserFromJWT(jwt);
             }
             else {
-                window.location.search.replace(/[\?\&]access_token=.*\&token_type=Bearer/, '');
+                // call to checkwith Server
+                return yield this.getUser();
             }
+        });
+    }
+    /**
+     * Clears the access_token property from the URL.
+     * @return {?}
+     */
+    removeTokenFromUrl() {
+        if (window.history && window.history.replaceState) {
+            window.history.replaceState({}, 'Remove token from URL', window.location.href.replace(/[\?\&]access_token=.*\&token_type=Bearer/, ''));
         }
-        return this.getUserFromJWT(jwt);
+        else {
+            window.location.search.replace(/[\?\&]access_token=.*\&token_type=Bearer/, '');
+        }
     }
     /**
      * Create an invisable iframe and appends it to the bottom of the page.
@@ -252,29 +270,18 @@ class AuthService {
      * @return {?}
      */
     logout() {
-        /** @type {?} */
-        const self = this;
         // Create iframe to manually call the logout and remove gpoauth cookie
         // https://stackoverflow.com/questions/13758207/why-is-passportjs-in-node-not-removing-session-on-logout#answer-33786899
         // this.createIframe(`${this.config.IDP_BASE_URL}/auth/logout`)
-        // Save JWT to send with final request to revoke it
-        self.removeAuth(); // purge the JWT
-        return new Promise((resolve, reject) => {
-            getJson(`${this.config.APP_BASE_URL}/revoke?sso=true`, this.getJWT())
-                .then(() => {
-                if (this.config.LOGOUT_URL)
-                    window.location.href = this.config.LOGOUT_URL;
-                if (this.config.FORCE_LOGIN)
-                    self.forceLogin();
-                resolve();
-            })
-                .catch((err) => {
-                console.log('Error logging out: ', err);
-                reject(err);
-            });
+        return __awaiter(this, void 0, void 0, function* () {
+            yield getJson(`${this.config.APP_BASE_URL}/revoke?sso=true`, this.getJWT());
+            this.removeAuth(); // purge the JWT
+            if (this.config.LOGOUT_URL)
+                window.location.href = this.config.LOGOUT_URL;
+            if (this.config.FORCE_LOGIN)
+                this.forceLogin();
         });
     }
-    ;
     /**
      * Optional force redirect for non-public services
      * @return {?}
@@ -288,18 +295,12 @@ class AuthService {
      * @return {?}
      */
     getOauthProfile() {
-        /** @type {?} */
-        const JWT = this.getJWT();
-        return new Promise((resolve, reject) => {
-            //check to make sure we can make called
-            if (JWT) {
-                getJson(`${this.config.IDP_BASE_URL}/api/profile`, JWT)
-                    .then((response) => resolve(response))
-                    .catch(err => reject(err));
-            }
-            else {
-                reject(null);
-            }
+        return __awaiter(this, void 0, void 0, function* () {
+            /** @type {?} */
+            const JWT = this.getJWT();
+            return JWT ?
+                yield getJson(`${this.config.IDP_BASE_URL}/api/profile`, JWT) :
+                null;
         });
     }
     ;
@@ -332,20 +333,12 @@ class AuthService {
     getUserSync(callback) {
         /** @type {?} */
         const jwt = this.getJWT();
-        // If callback provided we can treat async and call server
-        if (callback && typeof (callback) === 'function') {
-            this.check()
-                .then(user => callback(user));
-            // If no callback we have to provide a sync response (no network)
-        }
-        else {
-            // We allow front end to get user data if grant type and expired
-            // because they will recieve a new token automatically when
-            // making a call to the client(application)
-            return this.isImplicitJWT(jwt) && this.isExpired(jwt) ?
-                null :
-                this.getUserFromJWT(jwt);
-        }
+        // We allow front end to get user data if grant type and expired
+        // because they will recieve a new token automatically when
+        // making a call to the client(application)
+        return this.isImplicitJWT(jwt) && this.isExpired(jwt) ?
+            null :
+            this.getUserFromJWT(jwt);
     }
     /**
      * Promise version of get user.
@@ -379,45 +372,36 @@ class AuthService {
      * @return {?}
      */
     getUser() {
-        /** @type {?} */
-        const self = this;
-        // For basic testing
-        // this.messenger.broadcast('userAuthenticated', { name: 'username'})
-        return new Promise((resolve, reject) => {
-            this.check()
-                .then(user => {
-                if (user) {
-                    resolve(user);
-                }
-                else {
-                    // Case 1 - ALLOW_IFRAME_LOGIN: true | FORCE_LOGIN: true
-                    if (this.config.ALLOW_IFRAME_LOGIN && this.config.FORCE_LOGIN) {
-                        // Resolve with user once they have logged in
-                        this.messenger.on('userAuthenticated', (event, user) => {
-                            resolve(user);
-                        });
+        return __awaiter(this, void 0, void 0, function* () {
+            /** @type {?} */
+            const user = yield this.check();
+            if (user)
+                return user;
+            // Case 1 - ALLOW_IFRAME_LOGIN: true | FORCE_LOGIN: true
+            if (this.config.ALLOW_IFRAME_LOGIN && this.config.FORCE_LOGIN) {
+                // Resolve with user once they have logged in
+                this.messenger.on('userAuthenticated', (event, user) => {
+                    return user;
+                });
+            }
+            // Case 2 - ALLOW_IFRAME_LOGIN: true | FORCE_LOGIN: false
+            if (this.config.ALLOW_IFRAME_LOGIN && !this.config.FORCE_LOGIN) {
+                return null;
+            }
+            // Case 3 - ALLOW_IFRAME_LOGIN: false | FORCE_LOGIN: true
+            if (!this.config.ALLOW_IFRAME_LOGIN && this.config.FORCE_LOGIN) {
+                addEventListener('message', (event) => {
+                    // Handle SSO login failure
+                    if (event.data === 'iframe:ssoFailed') {
+                        return this.getUser();
                     }
-                    // Case 2 - ALLOW_IFRAME_LOGIN: true | FORCE_LOGIN: false
-                    if (this.config.ALLOW_IFRAME_LOGIN && !this.config.FORCE_LOGIN) {
-                        resolve(null);
-                    }
-                    // Case 3 - ALLOW_IFRAME_LOGIN: false | FORCE_LOGIN: true
-                    if (!this.config.ALLOW_IFRAME_LOGIN && this.config.FORCE_LOGIN) {
-                        addEventListener('message', (event) => {
-                            // Handle SSO login failure
-                            if (event.data === 'iframe:ssoFailed') {
-                                resolve(self.getUser());
-                            }
-                        });
-                        resolve(null);
-                    }
-                    // Case 4 - ALLOW_IFRAME_LOGIN: false | FORCE_LOGIN: false
-                    if (!this.config.ALLOW_IFRAME_LOGIN && !this.config.FORCE_LOGIN) {
-                        resolve(null); // or reject?
-                    }
-                }
-            })
-                .catch((err) => console.log(err));
+                });
+                return null;
+            }
+            // Case 4 - ALLOW_IFRAME_LOGIN: false | FORCE_LOGIN: false
+            if (!this.config.ALLOW_IFRAME_LOGIN && !this.config.FORCE_LOGIN) {
+                return null; // or reject?
+            }
         });
     }
     ;
@@ -429,27 +413,29 @@ class AuthService {
      * @return {?}
      */
     check() {
-        return new Promise((resolve, rej) => {
+        return __awaiter(this, void 0, void 0, function* () {
             /** @type {?} */
             const jwt = this.getJWT();
             // If no local JWT
-            if (!jwt)
-                return this.checkWithClient("")
-                    .then(jwt => jwt.length ? this.getUserFromJWT(jwt) : null);
-            if (!jwt)
-                return resolve(null);
+            if (!jwt) {
+                /** @type {?} */
+                const freshJwt = yield this.checkWithClient("");
+                return jwt && jwt.length ?
+                    this.getUserFromJWT(freshJwt) :
+                    null;
+            }
             if (!this.isImplicitJWT(jwt)) { // Grant token
                 // Grant token
                 return this.isExpired(jwt) ?
-                    this.checkWithClient(jwt)
+                    yield this.checkWithClient(jwt)
                         .then(jwt => this.getUserFromJWT(jwt)) : // Check with server
-                    resolve(this.getUserFromJWT(jwt));
+                    this.getUserFromJWT(jwt);
             }
             else { // Implicit JWT
                 // Implicit JWT
                 return this.isExpired(jwt) ?
                     Promise.reject(null) :
-                    resolve(this.getUserFromJWT(jwt));
+                    this.getUserFromJWT(jwt);
             }
         });
     }
@@ -467,27 +453,24 @@ class AuthService {
      * @return {?}
      */
     checkWithClient(originalJWT) {
-        return new Promise((resolve, reject) => {
+        return __awaiter(this, void 0, void 0, function* () {
             if (this.config.AUTH_TYPE === 'token') {
-                resolve(null);
+                return null;
             }
             else {
-                axios(`${this.config.APP_BASE_URL}/checktoken`, {
+                /** @type {?} */
+                const resp = yield axios(`${this.config.APP_BASE_URL}/checktoken`, {
                     headers: {
-                        'Authorization': originalJWT ? `Bearer ${originalJWT}` : '',
-                        'Access-Control-Expose-Headers': 'Authorization, WWW-Authorization, content-length'
+                        'Authorization': originalJWT ? `Bearer ${originalJWT}` : ''
                     }
-                })
-                    .then(resp => {
-                    /** @type {?} */
-                    const header = resp.headers['authorization'];
-                    /** @type {?} */
-                    const newJWT = header && header.replace('Bearer', '').trim();
-                    if (header && newJWT.length)
-                        this.setAuth(newJWT);
-                    resolve(newJWT ? newJWT : originalJWT);
-                })
-                    .catch(err => reject(err));
+                });
+                /** @type {?} */
+                const header = resp.headers['authorization'];
+                /** @type {?} */
+                const newJWT = header && header.replace('Bearer', '').trim();
+                if (header && newJWT.length)
+                    this.setAuth(newJWT);
+                return newJWT ? newJWT : originalJWT;
             }
         });
     }
