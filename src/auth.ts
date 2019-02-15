@@ -108,20 +108,30 @@ export class AuthService {
    *
    * @method init
    */
-  private init(): GeoPlatformUser {
+  private async init(): Promise<GeoPlatformUser> {
     const jwt = this.getJWT();
-    if(jwt) this.setAuth(jwt)
 
     //clean hosturl on redirect from oauth
-    if (this.getJWTFromUrl()) {
-      if(window.history && window.history.replaceState){
-        window.history.replaceState( {} , 'Remove token from URL', window.location.href.replace(/[\?\&]access_token=.*\&token_type=Bearer/, '') )
-      } else {
-        window.location.search.replace(/[\?\&]access_token=.*\&token_type=Bearer/, '')
-      }
-    }
+    if (this.getJWTFromUrl()) this.removeTokenFromUrl()
 
-    return this.getUserFromJWT(jwt)
+    if(jwt) {
+      this.setAuth(jwt)
+      return this.getUserFromJWT(jwt)
+    } else {
+      // call to checkwith Server
+      return await this.getUser();
+    }
+  }
+
+  /**
+   * Clears the access_token property from the URL.
+   */
+  private removeTokenFromUrl(): void {
+    if(window.history && window.history.replaceState){
+      window.history.replaceState( {} , 'Remove token from URL', window.location.href.replace(/[\?\&]access_token=.*\&token_type=Bearer/, '') )
+    } else {
+      window.location.search.replace(/[\?\&]access_token=.*\&token_type=Bearer/, '')
+    }
   }
 
   /**
