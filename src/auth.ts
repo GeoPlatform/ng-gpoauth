@@ -130,10 +130,11 @@ export class AuthService {
    * Clears the access_token property from the URL.
    */
   private removeTokenFromUrl(): void {
+    const replaceRegex = /[\?\&]access_token=.*(\&token_type=Bearer)?/
     if(window.history && window.history.replaceState){
-      window.history.replaceState( {} , 'Remove token from URL', window.location.href.replace(/[\?\&]access_token=.*\&token_type=Bearer/, '') )
+      window.history.replaceState( {} , 'Remove token from URL', window.location.href.replace(replaceRegex, '') )
     } else {
-      window.location.search.replace(/[\?\&]access_token=.*\&token_type=Bearer/, '')
+      window.location.search.replace(replaceRegex, '')
     }
   }
 
