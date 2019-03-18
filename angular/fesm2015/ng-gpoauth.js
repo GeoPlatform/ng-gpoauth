@@ -216,11 +216,13 @@ class AuthService {
      * @return {?}
      */
     removeTokenFromUrl() {
+        /** @type {?} */
+        const replaceRegex = /[\?\&]access_token=.*(\&token_type=Bearer)?/;
         if (window.history && window.history.replaceState) {
-            window.history.replaceState({}, 'Remove token from URL', window.location.href.replace(/[\?\&]access_token=.*\&token_type=Bearer/, ''));
+            window.history.replaceState({}, 'Remove token from URL', window.location.href.replace(replaceRegex, ''));
         }
         else {
-            window.location.search.replace(/[\?\&]access_token=.*\&token_type=Bearer/, '');
+            window.location.search.replace(replaceRegex, '');
         }
     }
     /**
@@ -658,7 +660,9 @@ class TokenInterceptor {
      */
     intercept(request, next) {
         /** @type {?} */
-        const jwt = this.authService.getJWT();
+        const self = this;
+        /** @type {?} */
+        const jwt = self.authService.getJWT();
         if (jwt) {
             // Send our current token
             request = request.clone({
@@ -680,7 +684,7 @@ class TokenInterceptor {
         function responseHandler(event) {
             if (event instanceof HttpResponse) {
                 /** @type {?} */
-                const urlJwt = this.authService.getJWTFromUrl();
+                const urlJwt = self.authService.getJWTFromUrl();
                 /** @type {?} */
                 const headerJwt = event.headers.get('Authorization')
                     .replace('Bearer', '')
@@ -688,7 +692,7 @@ class TokenInterceptor {
                 /** @type {?} */
                 const newJwt = urlJwt || headerJwt;
                 if (newJwt)
-                    this.authService.setAuth(newJwt);
+                    self.authService.setAuth(newJwt);
                 // TODO: may want to look at revoking if:
                 //  'Authorization' : 'Bearer '
                 // comes back from server....

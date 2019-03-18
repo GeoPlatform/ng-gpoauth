@@ -48,3 +48,4 @@ export function ngGpoauthFactory(config?: AuthConfig): AuthService {
 export { AuthService } from '../auth'
 export { GeoPlatformUser } from '../GeoPlatformUser'
 export { TokenInterceptor } from './interceptor'
+export { AuthConfig } from '../authTypes'

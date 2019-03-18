@@ -14,15 +14,17 @@ import { AuthService } from '../auth';
 
 @Injectable()
 export class TokenInterceptor implements HttpInterceptor {
-    constructor(private authService: AuthService) {}
-    intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
 
+    constructor(private authService: AuthService) {}
+
+    intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+        const self = this;
         // TODO: we need to check for expiration and do a preflight to
         // /checktoken if the current token is expired
 
         // ====== For sending token (with request) ======//
 
-        const jwt = this.authService.getJWT();
+        const jwt = self.authService.getJWT();
         if(jwt){
             // Send our current token
             request = request.clone({
@@ -46,7 +48,7 @@ export class TokenInterceptor implements HttpInterceptor {
         function responseHandler(event: HttpEvent<any>){
             if (event instanceof HttpResponse) {
                 // look for JWT in URL
-                const urlJwt = this.authService.getJWTFromUrl();
+                const urlJwt = self.authService.getJWTFromUrl();
 
                 // look for JWT in auth headers
                 const headerJwt = event.headers.get('Authorization')
@@ -56,7 +58,7 @@ export class TokenInterceptor implements HttpInterceptor {
                 const newJwt = urlJwt || headerJwt;
 
                 if(newJwt)
-                    this.authService.setAuth(newJwt)
+                    self.authService.setAuth(newJwt)
 
                 // TODO: may want to look at revoking if:
                 //  'Authorization' : 'Bearer '
