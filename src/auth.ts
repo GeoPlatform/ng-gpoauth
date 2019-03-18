@@ -157,13 +157,19 @@ export class AuthService {
   /**
    * Redirects or displays login window the page to the login site
    */
-  login() {
+  login(path?: string): void {
     // Check implicit we need to actually redirect them
+    const loc = path ?
+                `${window.location.origin}${path}` :
+                this.config.CALLBACK ?
+                    this.config.CALLBACK :
+                    window.location.href // default
+
     if(this.config.AUTH_TYPE === 'token') {
       window.location.href = this.config.IDP_BASE_URL +
               `/auth/authorize?client_id=${this.config.APP_ID}` +
               `&response_type=${this.config.AUTH_TYPE}` +
-              `&redirect_uri=${encodeURIComponent(this.config.CALLBACK || '/login')}`
+              `&redirect_uri=${encodeURIComponent(loc || '/login')}`
 
     // Otherwise pop up the login modal
     } else {
@@ -171,10 +177,10 @@ export class AuthService {
       if(this.config.ALLOW_IFRAME_LOGIN){
         this.messenger.broadcast('auth:requireLogin')
 
-        // Redirect login
+      // Redirect login
       } else {
         window.location.href = this.config.LOGIN_URL
-                        || `/login?redirect_url=${encodeURIComponent(window.location.href)}`
+                        || `/login?redirect_url=${encodeURIComponent(loc)}`
       }
     }
   };
