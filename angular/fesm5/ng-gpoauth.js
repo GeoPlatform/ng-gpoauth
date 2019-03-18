@@ -319,19 +319,26 @@ AuthService = /** @class */ (function () {
      */
     /**
      * Redirects or displays login window the page to the login site
+     * @param {?=} path
      * @return {?}
      */
     AuthService.prototype.login = /**
      * Redirects or displays login window the page to the login site
+     * @param {?=} path
      * @return {?}
      */
-    function () {
-        // Check implicit we need to actually redirect them
+    function (path) {
+        /** @type {?} */
+        var loc = path ?
+            "" + window.location.origin + path :
+            this.config.CALLBACK ?
+                this.config.CALLBACK :
+                window.location.href; // default
         if (this.config.AUTH_TYPE === 'token') {
             window.location.href = this.config.IDP_BASE_URL +
                 ("/auth/authorize?client_id=" + this.config.APP_ID) +
                 ("&response_type=" + this.config.AUTH_TYPE) +
-                ("&redirect_uri=" + encodeURIComponent(this.config.CALLBACK || '/login'));
+                ("&redirect_uri=" + encodeURIComponent(loc || '/login'));
             // Otherwise pop up the login modal
         }
         else {
@@ -342,7 +349,7 @@ AuthService = /** @class */ (function () {
             }
             else {
                 window.location.href = this.config.LOGIN_URL
-                    || "/login?redirect_url=" + encodeURIComponent(window.location.href);
+                    || "/login?redirect_url=" + encodeURIComponent(loc);
             }
         }
     };
@@ -1080,11 +1087,12 @@ var TokenInterceptor = /** @class */ (function () {
                 /** @type {?} */
                 var urlJwt = self.authService.getJWTFromUrl();
                 /** @type {?} */
-                var headerJwt = event.headers.get('Authorization')
+                var headerJwt = (event.headers.get('Authorization') || '')
                     .replace('Bearer', '')
                     .trim();
                 /** @type {?} */
-                var newJwt = urlJwt || headerJwt;
+                var newJwt = ((!!urlJwt && urlJwt.length) ? urlJwt : null)
+                    || ((!!headerJwt && headerJwt.length) ? headerJwt : null);
                 if (newJwt)
                     self.authService.setAuth(newJwt);
                 // TODO: may want to look at revoking if:
@@ -1104,11 +1112,10 @@ var TokenInterceptor = /** @class */ (function () {
                 if (err.status === 401) ;
             }
         }
-        // ==============================================//
-        // setup and return with handlers
-        return next
-            .handle(request)
-            .do(responseHandler, responseFailureHandler);
+        /** @type {?} */
+        var handler = next.handle(request);
+        handler.subscribe(responseHandler, responseFailureHandler);
+        return handler;
     };
     TokenInterceptor.decorators = [
         { type: Injectable }

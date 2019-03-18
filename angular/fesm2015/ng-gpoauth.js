@@ -243,15 +243,21 @@ class AuthService {
     ;
     /**
      * Redirects or displays login window the page to the login site
+     * @param {?=} path
      * @return {?}
      */
-    login() {
-        // Check implicit we need to actually redirect them
+    login(path) {
+        /** @type {?} */
+        const loc = path ?
+            `${window.location.origin}${path}` :
+            this.config.CALLBACK ?
+                this.config.CALLBACK :
+                window.location.href; // default
         if (this.config.AUTH_TYPE === 'token') {
             window.location.href = this.config.IDP_BASE_URL +
                 `/auth/authorize?client_id=${this.config.APP_ID}` +
                 `&response_type=${this.config.AUTH_TYPE}` +
-                `&redirect_uri=${encodeURIComponent(this.config.CALLBACK || '/login')}`;
+                `&redirect_uri=${encodeURIComponent(loc || '/login')}`;
             // Otherwise pop up the login modal
         }
         else {
@@ -262,7 +268,7 @@ class AuthService {
             }
             else {
                 window.location.href = this.config.LOGIN_URL
-                    || `/login?redirect_url=${encodeURIComponent(window.location.href)}`;
+                    || `/login?redirect_url=${encodeURIComponent(loc)}`;
             }
         }
     }
@@ -686,11 +692,12 @@ class TokenInterceptor {
                 /** @type {?} */
                 const urlJwt = self.authService.getJWTFromUrl();
                 /** @type {?} */
-                const headerJwt = event.headers.get('Authorization')
+                const headerJwt = (event.headers.get('Authorization') || '')
                     .replace('Bearer', '')
                     .trim();
                 /** @type {?} */
-                const newJwt = urlJwt || headerJwt;
+                const newJwt = ((!!urlJwt && urlJwt.length) ? urlJwt : null)
+                    || ((!!headerJwt && headerJwt.length) ? headerJwt : null);
                 if (newJwt)
                     self.authService.setAuth(newJwt);
                 // TODO: may want to look at revoking if:
@@ -710,11 +717,10 @@ class TokenInterceptor {
                 if (err.status === 401) ;
             }
         }
-        // ==============================================//
-        // setup and return with handlers
-        return next
-            .handle(request)
-            .do(responseHandler, responseFailureHandler);
+        /** @type {?} */
+        const handler = next.handle(request);
+        handler.subscribe(responseHandler, responseFailureHandler);
+        return handler;
     }
 }
 TokenInterceptor.decorators = [

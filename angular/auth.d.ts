@@ -52,7 +52,7 @@ export declare class AuthService {
     /**
      * Redirects or displays login window the page to the login site
      */
-    login(): void;
+    login(path?: string): void;
     /**
      * Performs background logout and requests jwt revokation
      */

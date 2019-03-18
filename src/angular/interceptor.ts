@@ -84,8 +84,9 @@ export class TokenInterceptor implements HttpInterceptor {
         // ==============================================//
 
         // setup and return with handlers
-        return next
-                .handle(request)
-                .do(responseHandler, responseFailureHandler);
+        const handler = next.handle(request);
+        handler.subscribe(responseHandler, responseFailureHandler);
+
+        return handler
   }
 }
