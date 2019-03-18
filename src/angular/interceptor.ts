@@ -51,11 +51,12 @@ export class TokenInterceptor implements HttpInterceptor {
                 const urlJwt = self.authService.getJWTFromUrl();
 
                 // look for JWT in auth headers
-                const headerJwt = event.headers.get('Authorization')
+                const headerJwt = (event.headers.get('Authorization') || '')
                                             .replace('Bearer', '')
                                             .trim();
 
-                const newJwt = urlJwt || headerJwt;
+                const newJwt = ((!!urlJwt && urlJwt.length) ? urlJwt : null)
+                            || ((!!headerJwt && headerJwt.length) ? headerJwt : null)
 
                 if(newJwt)
                     self.authService.setAuth(newJwt)
