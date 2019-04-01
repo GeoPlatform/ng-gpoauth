@@ -26,24 +26,26 @@ Grant type authentication require a back end service (like node-gpoauth) to hand
 Apps have the ability to allow for authentication via iframe and keep the user from having to redirect to the Oauth page for authentication. In the event that an app allows for iframe authentication it will need to implement handlers for login events. These events are fired from $rootScope for the application. -->
 
 ---
+<br>
 
 ## Installation:
 > npm install http://github.com/GeoPlatform/ng-gpoauth.git
 
 ---
+<br>
 
 ## Usage
 
 See the [Configuration](https://github.com/GeoPlatform/ng-gpoauth#configuration) section for options.
 
 
-### Angular (Angular 2+)
-`ng-gpoauth` exposes a service that can be utilized thought out Angular 2+ application.
+### Angular (Angular 5+)
+`ng-gpoauth` exposes a service that can be utilized thought out Angular 5+ application.
 
 
 You will first need to register a provider for using `AuthService` with Dependency Injection.
 > **NOTE:**
-> The import is `ng-gpoauth/angular` for Angular 2+
+> The import is `ng-gpoauth/angular` for Angular 5+
 
 ```javascript
 // app.module.ts
@@ -51,6 +53,12 @@ You will first need to register a provider for using `AuthService` with Dependen
 import { ngGpoauthFactory, AuthService } from 'ng-gpoauth/angular';
 import { TokenInterceptor } from 'ng-gpoauth/angular'
 
+/**
+ * Configuration object for ng-gpoauth. See the Configuration section below
+ * for a list of options.
+ *
+ * @see https://github.com/GeoPlatform/ng-gpoauth#configuration
+ */
 import { authConfig } from './myConfig';
 
 // Pass settings in : get Auth Service back
@@ -89,9 +97,11 @@ import { AuthService, GeoPlatformUser } from 'ng-gpoauth/angular'
 export class AppComponent {
 
     constructor(private authService : AuthService) {
+
         authService.getUser().then( user => {
             // I have the user!
         })
+
     }
 }
 ```
@@ -100,12 +110,14 @@ export class AppComponent {
 > `ng serve` will force reloads when SSO is enabled. When running locally with
 > ng serve make sure to set `ALLOW_SSO_LOGIN` to `false`.
 
+<br>
 
 ### AngularJS (Angular 1)
 
 > Comming soon!
 
 ---
+<br>
 
 ## Messages
 All versions of `ng-gpoauth` have messages associated with authentication events. Each implementation provides its on messaging system for subscribing to these events. This is an example of how the Event Messenger can be obtained and used:
@@ -123,7 +135,7 @@ authMsg.on('userSignOut', (evt) => {
 
 ```
 
-The Angular (2+) can use the `raw()` method to obtain the raw `rxjs` Subscription related to auth events:
+The Angular (5+) can use the `raw()` method to obtain the raw `rxjs` Subscription related to auth events:
 ```javascript
 import { Subject } from 'rxjs'
 
@@ -155,6 +167,7 @@ authenticated.subscribe(msg => {
     let user = msg.user;
 })
 ```
+<br>
 
 ### **Authentication Events:**
 
@@ -182,9 +195,11 @@ authenticated.subscribe(msg => {
 ``` -->
 
 ---
+<br>
+<br>
 
 ## Configuration
-The following are property that sould be found at the top level of the GeoPlatorm namespace:
+The following are property on the config object passed into `ng-gpoauth` (see the [USAGE](https://github.com/GeoPlatform/ng-gpoauth#usage) section for integration details):
 
 | property | required | description | type | default
 |---|---|---|---|---|
