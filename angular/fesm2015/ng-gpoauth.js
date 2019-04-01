@@ -652,6 +652,8 @@ const DefaultAuthConf = {
  * @fileoverview added by tsickle
  * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
+/** @type {?} */
+const REVOKE_RESPONSE = 'Bearer ';
 class TokenInterceptor {
     /**
      * @param {?} authService
@@ -690,19 +692,25 @@ class TokenInterceptor {
         function responseHandler(event) {
             if (event instanceof HttpResponse) {
                 /** @type {?} */
-                const urlJwt = self.authService.getJWTFromUrl();
-                /** @type {?} */
-                const headerJwt = (event.headers.get('Authorization') || '')
-                    .replace('Bearer', '')
-                    .trim();
-                /** @type {?} */
-                const newJwt = ((!!urlJwt && urlJwt.length) ? urlJwt : null)
-                    || ((!!headerJwt && headerJwt.length) ? headerJwt : null);
-                if (newJwt)
-                    self.authService.setAuth(newJwt);
-                // TODO: may want to look at revoking if:
-                //  'Authorization' : 'Bearer '
-                // comes back from server....
+                const AuthHeader = event.headers.get('Authorization') || '';
+                // Revoke local (localstorage) JWT if signaled by node-gpoauth
+                if (AuthHeader === REVOKE_RESPONSE) {
+                    self.authService.logout();
+                    // Check for new JWT
+                }
+                else {
+                    /** @type {?} */
+                    const urlJwt = self.authService.getJWTFromUrl();
+                    /** @type {?} */
+                    const headerJwt = AuthHeader
+                        .replace('Bearer', '')
+                        .trim();
+                    /** @type {?} */
+                    const newJwt = ((!!urlJwt && urlJwt.length) ? urlJwt : null)
+                        || ((!!headerJwt && headerJwt.length) ? headerJwt : null);
+                    if (newJwt)
+                        self.authService.setAuth(newJwt);
+                }
             }
         }
         /**

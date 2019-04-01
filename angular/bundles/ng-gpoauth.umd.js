@@ -1153,6 +1153,8 @@
      * @fileoverview added by tsickle
      * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
      */
+    /** @type {?} */
+    var REVOKE_RESPONSE = 'Bearer ';
     var TokenInterceptor = /** @class */ (function () {
         function TokenInterceptor(authService) {
             this.authService = authService;
@@ -1193,19 +1195,25 @@
                 function responseHandler(event) {
                     if (event instanceof http.HttpResponse) {
                         /** @type {?} */
-                        var urlJwt = self.authService.getJWTFromUrl();
-                        /** @type {?} */
-                        var headerJwt = (event.headers.get('Authorization') || '')
-                            .replace('Bearer', '')
-                            .trim();
-                        /** @type {?} */
-                        var newJwt = ((!!urlJwt && urlJwt.length) ? urlJwt : null)
-                            || ((!!headerJwt && headerJwt.length) ? headerJwt : null);
-                        if (newJwt)
-                            self.authService.setAuth(newJwt);
-                        // TODO: may want to look at revoking if:
-                        //  'Authorization' : 'Bearer '
-                        // comes back from server....
+                        var AuthHeader = event.headers.get('Authorization') || '';
+                        // Revoke local (localstorage) JWT if signaled by node-gpoauth
+                        if (AuthHeader === REVOKE_RESPONSE) {
+                            self.authService.logout();
+                            // Check for new JWT
+                        }
+                        else {
+                            /** @type {?} */
+                            var urlJwt = self.authService.getJWTFromUrl();
+                            /** @type {?} */
+                            var headerJwt = AuthHeader
+                                .replace('Bearer', '')
+                                .trim();
+                            /** @type {?} */
+                            var newJwt = ((!!urlJwt && urlJwt.length) ? urlJwt : null)
+                                || ((!!headerJwt && headerJwt.length) ? headerJwt : null);
+                            if (newJwt)
+                                self.authService.setAuth(newJwt);
+                        }
                     }
                 }
                 /**

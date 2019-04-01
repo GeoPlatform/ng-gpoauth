@@ -11,6 +11,8 @@ import { Observable } from 'rxjs';
 
 import { AuthService } from '../auth';
 
+// Authorization header indicating local token should be revoked.
+const REVOKE_RESPONSE = 'Bearer ';
 
 @Injectable()
 export class TokenInterceptor implements HttpInterceptor {
@@ -47,23 +49,27 @@ export class TokenInterceptor implements HttpInterceptor {
          */
         function responseHandler(event: HttpEvent<any>){
             if (event instanceof HttpResponse) {
-                // look for JWT in URL
-                const urlJwt = self.authService.getJWTFromUrl();
+                const AuthHeader = event.headers.get('Authorization') || '';
 
-                // look for JWT in auth headers
-                const headerJwt = (event.headers.get('Authorization') || '')
-                                            .replace('Bearer', '')
-                                            .trim();
+                // Revoke local (localstorage) JWT if signaled by node-gpoauth
+                if(AuthHeader === REVOKE_RESPONSE) {
+                    self.authService.logout();
 
-                const newJwt = ((!!urlJwt && urlJwt.length) ? urlJwt : null)
-                            || ((!!headerJwt && headerJwt.length) ? headerJwt : null)
+                // Check for new JWT
+                } else {
+                    // look for JWT in URL
+                    const urlJwt = self.authService.getJWTFromUrl();
+                    // look for JWT in auth headers
+                    const headerJwt = AuthHeader
+                                        .replace('Bearer', '')
+                                        .trim();
 
-                if(newJwt)
-                    self.authService.setAuth(newJwt)
+                    const newJwt = ((!!urlJwt && urlJwt.length) ? urlJwt : null)
+                                || ((!!headerJwt && headerJwt.length) ? headerJwt : null)
 
-                // TODO: may want to look at revoking if:
-                //  'Authorization' : 'Bearer '
-                // comes back from server....
+                    if(newJwt)
+                        self.authService.setAuth(newJwt)
+                }
             }
         }
 
