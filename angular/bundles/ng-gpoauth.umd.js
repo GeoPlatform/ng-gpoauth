@@ -1154,7 +1154,7 @@
      * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
      */
     /** @type {?} */
-    var REVOKE_RESPONSE = 'Bearer ';
+    var REVOKE_RESPONSE = 'Bearer';
     var TokenInterceptor = /** @class */ (function () {
         function TokenInterceptor(authService) {
             this.authService = authService;
@@ -1197,7 +1197,7 @@
                         /** @type {?} */
                         var AuthHeader = event.headers.get('Authorization') || '';
                         // Revoke local (localstorage) JWT if signaled by node-gpoauth
-                        if (AuthHeader === REVOKE_RESPONSE) {
+                        if (AuthHeader.trim() === REVOKE_RESPONSE) {
                             self.authService.logout();
                             // Check for new JWT
                         }

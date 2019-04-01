@@ -12,7 +12,7 @@ import { Observable } from 'rxjs';
 import { AuthService } from '../auth';
 
 // Authorization header indicating local token should be revoked.
-const REVOKE_RESPONSE = 'Bearer ';
+const REVOKE_RESPONSE = 'Bearer';
 
 @Injectable()
 export class TokenInterceptor implements HttpInterceptor {
@@ -52,7 +52,7 @@ export class TokenInterceptor implements HttpInterceptor {
                 const AuthHeader = event.headers.get('Authorization') || '';
 
                 // Revoke local (localstorage) JWT if signaled by node-gpoauth
-                if(AuthHeader === REVOKE_RESPONSE) {
+                if(AuthHeader.trim() === REVOKE_RESPONSE) {
                     self.authService.logout();
 
                 // Check for new JWT

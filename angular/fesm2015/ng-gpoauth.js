@@ -653,7 +653,7 @@ const DefaultAuthConf = {
  * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
 /** @type {?} */
-const REVOKE_RESPONSE = 'Bearer ';
+const REVOKE_RESPONSE = 'Bearer';
 class TokenInterceptor {
     /**
      * @param {?} authService
@@ -694,7 +694,7 @@ class TokenInterceptor {
                 /** @type {?} */
                 const AuthHeader = event.headers.get('Authorization') || '';
                 // Revoke local (localstorage) JWT if signaled by node-gpoauth
-                if (AuthHeader === REVOKE_RESPONSE) {
+                if (AuthHeader.trim() === REVOKE_RESPONSE) {
                     self.authService.logout();
                     // Check for new JWT
                 }
