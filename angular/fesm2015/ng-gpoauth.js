@@ -281,10 +281,11 @@ class AuthService {
      * @return {?}
      */
     logout() {
-        // Create iframe to manually call the logout and remove gpoauth cookie
-        // https://stackoverflow.com/questions/13758207/why-is-passportjs-in-node-not-removing-session-on-logout#answer-33786899
-        // this.createIframe(`${this.config.IDP_BASE_URL}/auth/logout`)
         return __awaiter(this, void 0, void 0, function* () {
+            // Create iframe to manually call the logout and remove gpoauth cookie
+            // https://stackoverflow.com/questions/13758207/why-is-passportjs-in-node-not-removing-session-on-logout#answer-33786899
+            if (this.config.IDP_BASE_URL)
+                this.createIframe(`${this.config.IDP_BASE_URL}/auth/logout`);
             yield getJson(`${this.config.APP_BASE_URL}/revoke?sso=true`, this.getJWT());
             this.removeAuth(); // purge the JWT
             if (this.config.LOGOUT_URL)

@@ -195,7 +195,8 @@ export class AuthService {
   async logout(): Promise<void> {
     // Create iframe to manually call the logout and remove gpoauth cookie
     // https://stackoverflow.com/questions/13758207/why-is-passportjs-in-node-not-removing-session-on-logout#answer-33786899
-    // this.createIframe(`${this.config.IDP_BASE_URL}/auth/logout`)
+    if(this.config.IDP_BASE_URL)
+      this.createIframe(`${this.config.IDP_BASE_URL}/auth/logout`)
 
     await getJson(`${this.config.APP_BASE_URL}/revoke?sso=true`, this.getJWT())
     this.removeAuth() // purge the JWT
