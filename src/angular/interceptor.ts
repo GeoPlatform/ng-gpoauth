@@ -3,7 +3,6 @@ import {
   HttpRequest,
   HttpResponse,
   HttpHandler,
-  HttpErrorResponse,
   HttpEvent,
   HttpInterceptor
 } from '@angular/common/http';
@@ -11,8 +10,22 @@ import { Observable } from 'rxjs';
 
 import { AuthService } from '../auth';
 
-// Authorization header indicating local token should be revoked.
-const REVOKE_RESPONSE = 'Bearer';
+/**
+ * Angular boilerplate because:
+ * Angular6 HttpErrorResponse <> Angular7 HTTErrorPResponse
+ */
+function isHttpErrorResponse(evt: any): boolean {
+    return evt && evt.error;
+}
+
+/**
+ * Angular boilerplate because:
+ * Angular6 HttpResponse <> Angular7 HTTPResponse
+ * @param evt
+ */
+function isHttpResponse(evt: any): boolean {
+    return evt && evt.body;
+}
 
 @Injectable()
 export class TokenInterceptor implements HttpInterceptor {
@@ -47,30 +60,25 @@ export class TokenInterceptor implements HttpInterceptor {
          *
          * @param {HttpEvent<any>} resp - response from server
          */
-        function responseHandler(event: HttpEvent<any>){
-            if (event instanceof HttpResponse) {
+        function responseHandler(event: HttpResponse<any>): HttpEvent<any> {
+            if (isHttpResponse(event)) {
                 const AuthHeader = event.headers.get('Authorization') || '';
 
-                // Revoke local (localstorage) JWT if signaled by node-gpoauth
-                if(AuthHeader.trim() === REVOKE_RESPONSE) {
-                    self.authService.logout();
+                // look for JWT in URL
+                const urlJwt = self.authService.getJWTFromUrl();
+                // look for JWT in auth headers
+                const headerJwt = AuthHeader
+                                    .replace('Bearer', '')
+                                    .trim();
 
-                // Check for new JWT
-                } else {
-                    // look for JWT in URL
-                    const urlJwt = self.authService.getJWTFromUrl();
-                    // look for JWT in auth headers
-                    const headerJwt = AuthHeader
-                                        .replace('Bearer', '')
-                                        .trim();
+                const newJwt = ((!!urlJwt && urlJwt.length) ? urlJwt : null)
+                            || ((!!headerJwt && headerJwt.length) ? headerJwt : null)
 
-                    const newJwt = ((!!urlJwt && urlJwt.length) ? urlJwt : null)
-                                || ((!!headerJwt && headerJwt.length) ? headerJwt : null)
-
-                    if(newJwt)
-                        self.authService.setAuth(newJwt)
-                }
+                if(newJwt)
+                    self.authService.setAuth(newJwt)
             }
+
+            return event;
         }
 
         /**
@@ -80,9 +88,9 @@ export class TokenInterceptor implements HttpInterceptor {
          * @param {Error} err - Error from server
          */
         function responseFailureHandler(err: any){
-            if (err instanceof HttpErrorResponse) {
+            if (isHttpErrorResponse(event)) {
                 if (err.status === 401) {
-                    // Should we check if forceLogin is set and force them???
+                    self.authService.logout();
                 }
             }
         }

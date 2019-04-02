@@ -1,8 +1,8 @@
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('axios'), require('rxjs'), require('@angular/core'), require('@angular/common/http')) :
-    typeof define === 'function' && define.amd ? define('ng-gpoauth', ['exports', 'axios', 'rxjs', '@angular/core', '@angular/common/http'], factory) :
-    (factory((global['ng-gpoauth'] = {}),global.axios,global.rxjs,global.ng.core,global.ng.common.http));
-}(this, (function (exports,axios,rxjs,core,http) { 'use strict';
+    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('axios'), require('rxjs'), require('@angular/core')) :
+    typeof define === 'function' && define.amd ? define('ng-gpoauth', ['exports', 'axios', 'rxjs', '@angular/core'], factory) :
+    (factory((global['ng-gpoauth'] = {}),global.axios,global.rxjs,global.ng.core));
+}(this, (function (exports,axios,rxjs,core) { 'use strict';
 
     axios = axios && axios.hasOwnProperty('default') ? axios['default'] : axios;
 
@@ -188,6 +188,10 @@
      * @fileoverview added by tsickle
      * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
      */
+    /** @type {?} */
+    var AUTH_STORAGE_KEY = 'gpoauthJWT';
+    /** @type {?} */
+    var REVOKE_RESPONSE = '<REVOKED>';
     /**
      * @param {?} url
      * @param {?=} jwt
@@ -924,7 +928,7 @@
          * @return {?}
          */
             function () {
-                return this.getFromLocalStorage('gpoauthJWT');
+                return this.getFromLocalStorage(AUTH_STORAGE_KEY);
             };
         /**
          * Attempt and pull JWT from the following locations (in order):
@@ -979,7 +983,7 @@
          * @return {?}
          */
             function () {
-                localStorage.removeItem('gpoauthJWT');
+                localStorage.removeItem(AUTH_STORAGE_KEY);
             };
         /**
          * Is a token expired.
@@ -1119,8 +1123,13 @@
          * @return {?}
          */
             function (jwt) {
-                this.saveToLocalStorage('gpoauthJWT', jwt);
-                this.messenger.broadcast("userAuthenticated", this.getUserFromJWT(jwt));
+                if (jwt == REVOKE_RESPONSE) {
+                    this.logout();
+                }
+                else {
+                    this.saveToLocalStorage(AUTH_STORAGE_KEY, jwt);
+                    this.messenger.broadcast("userAuthenticated", this.getUserFromJWT(jwt));
+                }
             };
         /**
          * Purge the JWT from localStorage and authorization headers.
@@ -1131,7 +1140,7 @@
          * @return {?}
          */
             function () {
-                localStorage.removeItem('gpoauthJWT');
+                localStorage.removeItem(AUTH_STORAGE_KEY);
                 // Send null user as well (backwards compatability)
                 this.messenger.broadcast("userAuthenticated", null);
                 this.messenger.broadcast("userSignOut");
@@ -1153,8 +1162,24 @@
      * @fileoverview added by tsickle
      * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
      */
-    /** @type {?} */
-    var REVOKE_RESPONSE = 'Bearer';
+    /**
+     * Angular boilerplate because:
+     * Angular6 HttpErrorResponse <> Angular7 HTTErrorPResponse
+     * @param {?} evt
+     * @return {?}
+     */
+    function isHttpErrorResponse(evt) {
+        return evt && evt.error;
+    }
+    /**
+     * Angular boilerplate because:
+     * Angular6 HttpResponse <> Angular7 HTTPResponse
+     * @param {?} evt
+     * @return {?}
+     */
+    function isHttpResponse(evt) {
+        return evt && evt.body;
+    }
     var TokenInterceptor = /** @class */ (function () {
         function TokenInterceptor(authService) {
             this.authService = authService;
@@ -1193,28 +1218,22 @@
                  * @return {?}
                  */
                 function responseHandler(event) {
-                    if (event instanceof http.HttpResponse) {
+                    if (isHttpResponse(event)) {
                         /** @type {?} */
                         var AuthHeader = event.headers.get('Authorization') || '';
-                        // Revoke local (localstorage) JWT if signaled by node-gpoauth
-                        if (AuthHeader.trim() === REVOKE_RESPONSE) {
-                            self.authService.logout();
-                            // Check for new JWT
-                        }
-                        else {
-                            /** @type {?} */
-                            var urlJwt = self.authService.getJWTFromUrl();
-                            /** @type {?} */
-                            var headerJwt = AuthHeader
-                                .replace('Bearer', '')
-                                .trim();
-                            /** @type {?} */
-                            var newJwt = ((!!urlJwt && urlJwt.length) ? urlJwt : null)
-                                || ((!!headerJwt && headerJwt.length) ? headerJwt : null);
-                            if (newJwt)
-                                self.authService.setAuth(newJwt);
-                        }
+                        /** @type {?} */
+                        var urlJwt = self.authService.getJWTFromUrl();
+                        /** @type {?} */
+                        var headerJwt = AuthHeader
+                            .replace('Bearer', '')
+                            .trim();
+                        /** @type {?} */
+                        var newJwt = ((!!urlJwt && urlJwt.length) ? urlJwt : null)
+                            || ((!!headerJwt && headerJwt.length) ? headerJwt : null);
+                        if (newJwt)
+                            self.authService.setAuth(newJwt);
                     }
+                    return event;
                 }
                 /**
                  * The is the error handler when an unauthenticated request
@@ -1224,8 +1243,10 @@
                  * @return {?}
                  */
                 function responseFailureHandler(err) {
-                    if (err instanceof http.HttpErrorResponse) {
-                        if (err.status === 401) ;
+                    if (isHttpErrorResponse(event)) {
+                        if (err.status === 401) {
+                            self.authService.logout();
+                        }
                     }
                 }
                 /** @type {?} */

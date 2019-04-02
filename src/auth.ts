@@ -2,6 +2,9 @@ import { ngMessenger, AuthConfig, JWT, UserProfile } from '../src/authTypes'
 import { GeoPlatformUser } from './GeoPlatformUser'
 import axios from 'axios'
 
+const AUTH_STORAGE_KEY = 'gpoauthJWT'
+const REVOKE_RESPONSE = '<REVOKED>';
+
 async function getJson(url: string, jwt?: string) {
   const resp = await axios.get(url, {
                         headers: { 'Authorization' : jwt ? `Bearer ${jwt}` : '' },
@@ -9,6 +12,7 @@ async function getJson(url: string, jwt?: string) {
                       })
   return resp.data;
 }
+
 
 /**
  * Authentication Service
@@ -407,7 +411,7 @@ export class AuthService {
    * @return {JWT | undefined} An object wih the following format:
    */
   getJWTfromLocalStorage(): string {
-    return this.getFromLocalStorage('gpoauthJWT')
+    return this.getFromLocalStorage(AUTH_STORAGE_KEY)
   };
 
   /**
@@ -437,7 +441,7 @@ export class AuthService {
    * @return  {undefined}
    */
   private clearLocalStorageJWT(): void {
-    localStorage.removeItem('gpoauthJWT')
+    localStorage.removeItem(AUTH_STORAGE_KEY)
   };
 
   /**
@@ -505,15 +509,19 @@ export class AuthService {
    * @param {JWT} jwt
    */
   public setAuth(jwt: string): void {
-    this.saveToLocalStorage('gpoauthJWT', jwt)
-    this.messenger.broadcast("userAuthenticated", this.getUserFromJWT(jwt))
+    if(jwt == REVOKE_RESPONSE){
+      this.logout()
+    } else {
+      this.saveToLocalStorage(AUTH_STORAGE_KEY, jwt)
+      this.messenger.broadcast("userAuthenticated", this.getUserFromJWT(jwt))
+    }
   };
 
   /**
    * Purge the JWT from localStorage and authorization headers.
    */
   private removeAuth(): void {
-    localStorage.removeItem('gpoauthJWT')
+    localStorage.removeItem(AUTH_STORAGE_KEY)
     // Send null user as well (backwards compatability)
     this.messenger.broadcast("userAuthenticated", null)
     this.messenger.broadcast("userSignOut")

@@ -2,7 +2,6 @@ import { __awaiter } from 'tslib';
 import axios from 'axios';
 import { Subject } from 'rxjs';
 import { Injectable } from '@angular/core';
-import { HttpResponse, HttpErrorResponse } from '@angular/common/http';
 
 /**
  * @fileoverview added by tsickle
@@ -73,6 +72,10 @@ class GeoPlatformUser {
  * @fileoverview added by tsickle
  * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
+/** @type {?} */
+const AUTH_STORAGE_KEY = 'gpoauthJWT';
+/** @type {?} */
+const REVOKE_RESPONSE = '<REVOKED>';
 /**
  * @param {?} url
  * @param {?=} jwt
@@ -507,7 +510,7 @@ class AuthService {
      * @return {?}
      */
     getJWTfromLocalStorage() {
-        return this.getFromLocalStorage('gpoauthJWT');
+        return this.getFromLocalStorage(AUTH_STORAGE_KEY);
     }
     ;
     /**
@@ -539,7 +542,7 @@ class AuthService {
      * @return {?}
      */
     clearLocalStorageJWT() {
-        localStorage.removeItem('gpoauthJWT');
+        localStorage.removeItem(AUTH_STORAGE_KEY);
     }
     ;
     /**
@@ -621,8 +624,13 @@ class AuthService {
      * @return {?}
      */
     setAuth(jwt) {
-        this.saveToLocalStorage('gpoauthJWT', jwt);
-        this.messenger.broadcast("userAuthenticated", this.getUserFromJWT(jwt));
+        if (jwt == REVOKE_RESPONSE) {
+            this.logout();
+        }
+        else {
+            this.saveToLocalStorage(AUTH_STORAGE_KEY, jwt);
+            this.messenger.broadcast("userAuthenticated", this.getUserFromJWT(jwt));
+        }
     }
     ;
     /**
@@ -630,7 +638,7 @@ class AuthService {
      * @return {?}
      */
     removeAuth() {
-        localStorage.removeItem('gpoauthJWT');
+        localStorage.removeItem(AUTH_STORAGE_KEY);
         // Send null user as well (backwards compatability)
         this.messenger.broadcast("userAuthenticated", null);
         this.messenger.broadcast("userSignOut");
@@ -652,8 +660,24 @@ const DefaultAuthConf = {
  * @fileoverview added by tsickle
  * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
-/** @type {?} */
-const REVOKE_RESPONSE = 'Bearer';
+/**
+ * Angular boilerplate because:
+ * Angular6 HttpErrorResponse <> Angular7 HTTErrorPResponse
+ * @param {?} evt
+ * @return {?}
+ */
+function isHttpErrorResponse(evt) {
+    return evt && evt.error;
+}
+/**
+ * Angular boilerplate because:
+ * Angular6 HttpResponse <> Angular7 HTTPResponse
+ * @param {?} evt
+ * @return {?}
+ */
+function isHttpResponse(evt) {
+    return evt && evt.body;
+}
 class TokenInterceptor {
     /**
      * @param {?} authService
@@ -690,28 +714,22 @@ class TokenInterceptor {
          * @return {?}
          */
         function responseHandler(event) {
-            if (event instanceof HttpResponse) {
+            if (isHttpResponse(event)) {
                 /** @type {?} */
                 const AuthHeader = event.headers.get('Authorization') || '';
-                // Revoke local (localstorage) JWT if signaled by node-gpoauth
-                if (AuthHeader.trim() === REVOKE_RESPONSE) {
-                    self.authService.logout();
-                    // Check for new JWT
-                }
-                else {
-                    /** @type {?} */
-                    const urlJwt = self.authService.getJWTFromUrl();
-                    /** @type {?} */
-                    const headerJwt = AuthHeader
-                        .replace('Bearer', '')
-                        .trim();
-                    /** @type {?} */
-                    const newJwt = ((!!urlJwt && urlJwt.length) ? urlJwt : null)
-                        || ((!!headerJwt && headerJwt.length) ? headerJwt : null);
-                    if (newJwt)
-                        self.authService.setAuth(newJwt);
-                }
+                /** @type {?} */
+                const urlJwt = self.authService.getJWTFromUrl();
+                /** @type {?} */
+                const headerJwt = AuthHeader
+                    .replace('Bearer', '')
+                    .trim();
+                /** @type {?} */
+                const newJwt = ((!!urlJwt && urlJwt.length) ? urlJwt : null)
+                    || ((!!headerJwt && headerJwt.length) ? headerJwt : null);
+                if (newJwt)
+                    self.authService.setAuth(newJwt);
             }
+            return event;
         }
         /**
          * The is the error handler when an unauthenticated request
@@ -721,8 +739,10 @@ class TokenInterceptor {
          * @return {?}
          */
         function responseFailureHandler(err) {
-            if (err instanceof HttpErrorResponse) {
-                if (err.status === 401) ;
+            if (isHttpErrorResponse(event)) {
+                if (err.status === 401) {
+                    self.authService.logout();
+                }
             }
         }
         /** @type {?} */
