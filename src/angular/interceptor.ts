@@ -7,6 +7,7 @@ import {
   HttpInterceptor
 } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { tap } from "rxjs/operators";
 
 import { AuthService } from '../auth';
 
@@ -98,8 +99,9 @@ export class TokenInterceptor implements HttpInterceptor {
         // ==============================================//
 
         // setup and return with handlers
-        const handler = next.handle(request);
-        handler.subscribe(responseHandler, responseFailureHandler);
+        // https://stackoverflow.com/questions/45664874/interceptor-making-two-calls-in-api
+        const handler = next.handle(request).pipe(
+            tap(responseHandler, responseFailureHandler));
 
         return handler
   }

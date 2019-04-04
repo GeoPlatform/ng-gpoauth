@@ -2,6 +2,7 @@ import { __awaiter } from 'tslib';
 import axios from 'axios';
 import { Subject } from 'rxjs';
 import { Injectable } from '@angular/core';
+import { tap } from 'rxjs/operators';
 
 /**
  * @fileoverview added by tsickle
@@ -747,8 +748,7 @@ class TokenInterceptor {
             }
         }
         /** @type {?} */
-        const handler = next.handle(request);
-        handler.subscribe(responseHandler, responseFailureHandler);
+        const handler = next.handle(request).pipe(tap(responseHandler, responseFailureHandler));
         return handler;
     }
 }

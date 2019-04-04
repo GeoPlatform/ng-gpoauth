@@ -2,6 +2,7 @@ import { __awaiter, __generator } from 'tslib';
 import axios from 'axios';
 import { Subject } from 'rxjs';
 import { Injectable } from '@angular/core';
+import { tap } from 'rxjs/operators';
 
 /**
  * @fileoverview added by tsickle
@@ -1136,8 +1137,7 @@ var TokenInterceptor = /** @class */ (function () {
             }
         }
         /** @type {?} */
-        var handler = next.handle(request);
-        handler.subscribe(responseHandler, responseFailureHandler);
+        var handler = next.handle(request).pipe(tap(responseHandler, responseFailureHandler));
         return handler;
     };
     TokenInterceptor.decorators = [

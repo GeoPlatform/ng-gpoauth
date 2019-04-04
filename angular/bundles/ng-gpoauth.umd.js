@@ -1,8 +1,8 @@
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('axios'), require('rxjs'), require('@angular/core')) :
-    typeof define === 'function' && define.amd ? define('ng-gpoauth', ['exports', 'axios', 'rxjs', '@angular/core'], factory) :
-    (factory((global['ng-gpoauth'] = {}),global.axios,global.rxjs,global.ng.core));
-}(this, (function (exports,axios,rxjs,core) { 'use strict';
+    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('axios'), require('rxjs'), require('@angular/core'), require('rxjs/operators')) :
+    typeof define === 'function' && define.amd ? define('ng-gpoauth', ['exports', 'axios', 'rxjs', '@angular/core', 'rxjs/operators'], factory) :
+    (factory((global['ng-gpoauth'] = {}),global.axios,global.rxjs,global.ng.core,global.rxjs.operators));
+}(this, (function (exports,axios,rxjs,core,operators) { 'use strict';
 
     axios = axios && axios.hasOwnProperty('default') ? axios['default'] : axios;
 
@@ -1245,8 +1245,7 @@
                     }
                 }
                 /** @type {?} */
-                var handler = next.handle(request);
-                handler.subscribe(responseHandler, responseFailureHandler);
+                var handler = next.handle(request).pipe(operators.tap(responseHandler, responseFailureHandler));
                 return handler;
             };
         TokenInterceptor.decorators = [
