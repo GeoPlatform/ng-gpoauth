@@ -11,10 +11,12 @@ import { tap } from 'rxjs/operators';
 /**
  * Convience class representing a simplified user.
  *
+ * GeoPlatformUser
  */
 var  /**
  * Convience class representing a simplified user.
  *
+ * GeoPlatformUser
  */
 GeoPlatformUser = /** @class */ (function () {
     function GeoPlatformUser(opts) {
@@ -119,10 +121,9 @@ var  /**
 AuthService = /** @class */ (function () {
     /**
      *
-     * @class AuthService
-     * @constructor
+     * AuthService
      *
-     * @param {AuthConfig} config
+     * @param config
      * @param
      */
     function AuthService(config, ngMessenger) {
@@ -301,14 +302,14 @@ AuthService = /** @class */ (function () {
      *
      * \@method createIframe
      * @param {?} url
-     * @return {?}
+     * @return {?} HTMLIFrameElement
      */
     AuthService.prototype.createIframe = /**
      * Create an invisable iframe and appends it to the bottom of the page.
      *
      * \@method createIframe
      * @param {?} url
-     * @return {?}
+     * @return {?} HTMLIFrameElement
      */
     function (url) {
         /** @type {?} */
@@ -441,7 +442,7 @@ AuthService = /** @class */ (function () {
      * If no JWT is provided it will be looked for at the normal JWT
      * locations (localStorage or URL queryString).
      *
-     * @param {JWT} [jwt] - the JWT to extract user from.
+     * @param [jwt] - the JWT to extract user from.
      */
     /**
      * Get User object from the JWT.
@@ -537,7 +538,7 @@ AuthService = /** @class */ (function () {
      *
      * @method getUser
      *
-     * @returns {Promise<User>} User - the authenticated user
+     * @returns User - the authenticated user resolved via Promise
      */
     /**
      * Promise version of get user.
@@ -568,7 +569,7 @@ AuthService = /** @class */ (function () {
      *
      * \@method getUser
      *
-     * @return {?}
+     * @return {?} User - the authenticated user resolved via Promise
      */
     AuthService.prototype.getUser = /**
      * Promise version of get user.
@@ -599,7 +600,7 @@ AuthService = /** @class */ (function () {
      *
      * \@method getUser
      *
-     * @return {?}
+     * @return {?} User - the authenticated user resolved via Promise
      */
     function () {
         return __awaiter(this, void 0, void 0, function () {
@@ -647,21 +648,21 @@ AuthService = /** @class */ (function () {
      * (wrapper for getUser)
      *
      * @method check
-     * @returns {User} - ng-common user object or null
+     * @returns User or null
      */
     /**
      * Check function being used by some front end apps already.
      * (wrapper for getUser)
      *
      * \@method check
-     * @return {?}
+     * @return {?} User or null
      */
     AuthService.prototype.check = /**
      * Check function being used by some front end apps already.
      * (wrapper for getUser)
      *
      * \@method check
-     * @return {?}
+     * @return {?} User or null
      */
     function () {
         return __awaiter(this, void 0, void 0, function () {
@@ -708,9 +709,9 @@ AuthService = /** @class */ (function () {
      *    https://www.digitalocean.com/community/tutorials/an-introduction-to-oauth-2
      *
      * @method checkWithClient
-     * @param {jwt} - encoded accessToken/JWT
+     * @param jwt - encoded accessToken/JWT
      *
-     * @return {Promise<jwt>} - promise resolving with a JWT
+     * @return Promise<jwt>
      */
     /**
      * Makes a call to a service hosting node-gpoauth to allow for a
@@ -721,9 +722,8 @@ AuthService = /** @class */ (function () {
      *    https://www.digitalocean.com/community/tutorials/an-introduction-to-oauth-2
      *
      * \@method checkWithClient
-     *
      * @param {?} originalJWT
-     * @return {?}
+     * @return {?} Promise<jwt>
      */
     AuthService.prototype.checkWithClient = /**
      * Makes a call to a service hosting node-gpoauth to allow for a
@@ -734,9 +734,8 @@ AuthService = /** @class */ (function () {
      *    https://www.digitalocean.com/community/tutorials/an-introduction-to-oauth-2
      *
      * \@method checkWithClient
-     *
      * @param {?} originalJWT
-     * @return {?}
+     * @return {?} Promise<jwt>
      */
     function (originalJWT) {
         return __awaiter(this, void 0, void 0, function () {
@@ -768,21 +767,21 @@ AuthService = /** @class */ (function () {
      *
      * @method getJWTFromUrl
      *
-     * @return {String | undefined} - JWT Token (raw string)
+     * @return JWT Token (raw string)
      */
     /**
      * Extract token from current URL
      *
      * \@method getJWTFromUrl
      *
-     * @return {?}
+     * @return {?} JWT Token (raw string)
      */
     AuthService.prototype.getJWTFromUrl = /**
      * Extract token from current URL
      *
      * \@method getJWTFromUrl
      *
-     * @return {?}
+     * @return {?} JWT Token (raw string)
      */
     function () {
         /** @type {?} */
@@ -798,21 +797,21 @@ AuthService = /** @class */ (function () {
      *
      * @method getJWTfromLocalStorage
      *
-     * @return {JWT | undefined} An object wih the following format:
+     * @return JWT Token
      */
     /**
      * Load the JWT stored in local storage.
      *
      * \@method getJWTfromLocalStorage
      *
-     * @return {?}
+     * @return {?} JWT Token
      */
     AuthService.prototype.getJWTfromLocalStorage = /**
      * Load the JWT stored in local storage.
      *
      * \@method getJWTfromLocalStorage
      *
-     * @return {?}
+     * @return {?} JWT Token
      */
     function () {
         return this.getFromLocalStorage(AUTH_STORAGE_KEY);
@@ -824,7 +823,7 @@ AuthService = /** @class */ (function () {
      *
      * @method getJWT
      *
-     * @return {sting | undefined}
+     * @return JWT Token
      */
     /**
      * Attempt and pull JWT from the following locations (in order):
@@ -833,7 +832,7 @@ AuthService = /** @class */ (function () {
      *
      * \@method getJWT
      *
-     * @return {?}
+     * @return {?} JWT Token
      */
     AuthService.prototype.getJWT = /**
      * Attempt and pull JWT from the following locations (in order):
@@ -842,7 +841,7 @@ AuthService = /** @class */ (function () {
      *
      * \@method getJWT
      *
-     * @return {?}
+     * @return {?} JWT Token
      */
     function () {
         /** @type {?} */
@@ -876,25 +875,25 @@ AuthService = /** @class */ (function () {
      * Is a token expired.
      *
      * @method isExpired
-     * @param {JWT} jwt - A JWT
+     * @param jwt - A JWT
      *
-     * @return {boolean}
+     * @return Boolean
      */
     /**
      * Is a token expired.
      *
      * \@method isExpired
+     * @param {?} jwt - A JWT
      *
-     * @param {?} jwt
-     * @return {?}
+     * @return {?} Boolean
      */
     AuthService.prototype.isExpired = /**
      * Is a token expired.
      *
      * \@method isExpired
+     * @param {?} jwt - A JWT
      *
-     * @param {?} jwt
-     * @return {?}
+     * @return {?} Boolean
      */
     function (jwt) {
         /** @type {?} */
@@ -928,20 +927,20 @@ AuthService = /** @class */ (function () {
     /**
      * Unsafe (signature not checked) unpacking of JWT.
      *
-     * @param {string} token - Access Token (JWT)
-     * @return {Object} the parsed payload in the JWT
+     * @param token - Access Token (JWT)
+     * @return the parsed payload in the JWT
      */
     /**
      * Unsafe (signature not checked) unpacking of JWT.
      *
-     * @param {?} token
-     * @return {?}
+     * @param {?} token - Access Token (JWT)
+     * @return {?} the parsed payload in the JWT
      */
     AuthService.prototype.parseJwt = /**
      * Unsafe (signature not checked) unpacking of JWT.
      *
-     * @param {?} token
-     * @return {?}
+     * @param {?} token - Access Token (JWT)
+     * @return {?} the parsed payload in the JWT
      */
     function (token) {
         /** @type {?} */
@@ -999,14 +998,14 @@ AuthService = /** @class */ (function () {
      * Save JWT to localStorage and in the request headers for accessing
      * protected resources.
      *
-     * @param {?} jwt
+     * @param {?} jwt - JWT
      * @return {?}
      */
     AuthService.prototype.setAuth = /**
      * Save JWT to localStorage and in the request headers for accessing
      * protected resources.
      *
-     * @param {?} jwt
+     * @param {?} jwt - JWT
      * @return {?}
      */
     function (jwt) {
@@ -1126,7 +1125,7 @@ var TokenInterceptor = /** @class */ (function () {
          * The is the error handler when an unauthenticated request
          * comes back from the server...
          *
-         * @param {?} err
+         * @param {?} err - Error from server
          * @return {?}
          */
         function responseFailureHandler(err) {
@@ -1223,4 +1222,4 @@ function ngGpoauthFactory$1(config) {
 
 export { ngGpoauthFactory$1 as ngGpoauthFactory, AuthService, GeoPlatformUser, TokenInterceptor, msgProvider as ɵd, DefaultAuthConf as ɵa };
 
-//# sourceMappingURL=ng-gpoauth.js.map
+//# sourceMappingURL=geoplatform-oauth-ng.js.map

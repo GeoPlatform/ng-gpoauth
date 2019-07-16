@@ -11,6 +11,7 @@ import { tap } from 'rxjs/operators';
 /**
  * Convience class representing a simplified user.
  *
+ * GeoPlatformUser
  */
 class GeoPlatformUser {
     /**
@@ -98,6 +99,7 @@ function getJson(url, jwt) {
 class AuthService {
     /**
      *
+     * AuthService
      *
      * @param {?} config
      * @param {?} ngMessenger
@@ -234,7 +236,7 @@ class AuthService {
      *
      * \@method createIframe
      * @param {?} url
-     * @return {?}
+     * @return {?} HTMLIFrameElement
      */
     createIframe(url) {
         /** @type {?} */
@@ -382,7 +384,7 @@ class AuthService {
      *
      * \@method getUser
      *
-     * @return {?}
+     * @return {?} User - the authenticated user resolved via Promise
      */
     getUser() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -423,7 +425,7 @@ class AuthService {
      * (wrapper for getUser)
      *
      * \@method check
-     * @return {?}
+     * @return {?} User or null
      */
     check() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -461,9 +463,8 @@ class AuthService {
      *    https://www.digitalocean.com/community/tutorials/an-introduction-to-oauth-2
      *
      * \@method checkWithClient
-     *
      * @param {?} originalJWT
-     * @return {?}
+     * @return {?} Promise<jwt>
      */
     checkWithClient(originalJWT) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -492,7 +493,7 @@ class AuthService {
      *
      * \@method getJWTFromUrl
      *
-     * @return {?}
+     * @return {?} JWT Token (raw string)
      */
     getJWTFromUrl() {
         /** @type {?} */
@@ -509,7 +510,7 @@ class AuthService {
      *
      * \@method getJWTfromLocalStorage
      *
-     * @return {?}
+     * @return {?} JWT Token
      */
     getJWTfromLocalStorage() {
         return this.getFromLocalStorage(AUTH_STORAGE_KEY);
@@ -522,7 +523,7 @@ class AuthService {
      *
      * \@method getJWT
      *
-     * @return {?}
+     * @return {?} JWT Token
      */
     getJWT() {
         /** @type {?} */
@@ -551,9 +552,9 @@ class AuthService {
      * Is a token expired.
      *
      * \@method isExpired
+     * @param {?} jwt - A JWT
      *
-     * @param {?} jwt
-     * @return {?}
+     * @return {?} Boolean
      */
     isExpired(jwt) {
         /** @type {?} */
@@ -579,8 +580,8 @@ class AuthService {
     /**
      * Unsafe (signature not checked) unpacking of JWT.
      *
-     * @param {?} token
-     * @return {?}
+     * @param {?} token - Access Token (JWT)
+     * @return {?} the parsed payload in the JWT
      */
     parseJwt(token) {
         /** @type {?} */
@@ -622,7 +623,7 @@ class AuthService {
      * Save JWT to localStorage and in the request headers for accessing
      * protected resources.
      *
-     * @param {?} jwt
+     * @param {?} jwt - JWT
      * @return {?}
      */
     setAuth(jwt) {
@@ -737,7 +738,7 @@ class TokenInterceptor {
          * The is the error handler when an unauthenticated request
          * comes back from the server...
          *
-         * @param {?} err
+         * @param {?} err - Error from server
          * @return {?}
          */
         function responseFailureHandler(err) {
@@ -819,4 +820,4 @@ function ngGpoauthFactory$1(config) {
 
 export { ngGpoauthFactory$1 as ngGpoauthFactory, AuthService, GeoPlatformUser, TokenInterceptor, msgProvider as ɵd, DefaultAuthConf as ɵa };
 
-//# sourceMappingURL=ng-gpoauth.js.map
+//# sourceMappingURL=geoplatform-oauth-ng.js.map

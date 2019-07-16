@@ -8,10 +8,9 @@ export declare class AuthService {
     messenger: ngMessenger;
     /**
      *
-     * @class AuthService
-     * @constructor
+     * AuthService
      *
-     * @param {AuthConfig} config
+     * @param config
      * @param
      */
     constructor(config: AuthConfig, ngMessenger: ngMessenger);
@@ -46,7 +45,7 @@ export declare class AuthService {
      * Create an invisable iframe and appends it to the bottom of the page.
      *
      * @method createIframe
-     * @returns {HTMLIFrameElement}
+     * @returns HTMLIFrameElement
      */
     private createIframe;
     /**
@@ -71,7 +70,7 @@ export declare class AuthService {
      * If no JWT is provided it will be looked for at the normal JWT
      * locations (localStorage or URL queryString).
      *
-     * @param {JWT} [jwt] - the JWT to extract user from.
+     * @param [jwt] - the JWT to extract user from.
      */
     getUserFromJWT(jwt: string): GeoPlatformUser;
     /**
@@ -114,7 +113,7 @@ export declare class AuthService {
      *
      * @method getUser
      *
-     * @returns {Promise<User>} User - the authenticated user
+     * @returns User - the authenticated user resolved via Promise
      */
     getUser(): Promise<GeoPlatformUser>;
     /**
@@ -122,7 +121,7 @@ export declare class AuthService {
      * (wrapper for getUser)
      *
      * @method check
-     * @returns {User} - ng-common user object or null
+     * @returns User or null
      */
     check(): Promise<GeoPlatformUser>;
     /**
@@ -134,9 +133,9 @@ export declare class AuthService {
      *    https://www.digitalocean.com/community/tutorials/an-introduction-to-oauth-2
      *
      * @method checkWithClient
-     * @param {jwt} - encoded accessToken/JWT
+     * @param jwt - encoded accessToken/JWT
      *
-     * @return {Promise<jwt>} - promise resolving with a JWT
+     * @return Promise<jwt>
      */
     checkWithClient(originalJWT: string): Promise<any>;
     /**
@@ -144,7 +143,7 @@ export declare class AuthService {
      *
      * @method getJWTFromUrl
      *
-     * @return {String | undefined} - JWT Token (raw string)
+     * @return JWT Token (raw string)
      */
     getJWTFromUrl(): string;
     /**
@@ -152,7 +151,7 @@ export declare class AuthService {
      *
      * @method getJWTfromLocalStorage
      *
-     * @return {JWT | undefined} An object wih the following format:
+     * @return JWT Token
      */
     getJWTfromLocalStorage(): string;
     /**
@@ -162,7 +161,7 @@ export declare class AuthService {
      *
      * @method getJWT
      *
-     * @return {sting | undefined}
+     * @return JWT Token
      */
     getJWT(): string;
     /**
@@ -170,16 +169,15 @@ export declare class AuthService {
      *
      * @method clearLocalStorageJWT
      *
-     * @return  {undefined}
      */
     private clearLocalStorageJWT;
     /**
      * Is a token expired.
      *
      * @method isExpired
-     * @param {JWT} jwt - A JWT
+     * @param jwt - A JWT
      *
-     * @return {boolean}
+     * @return Boolean
      */
     isExpired(jwt: string): boolean;
     /**
@@ -190,8 +188,8 @@ export declare class AuthService {
     /**
      * Unsafe (signature not checked) unpacking of JWT.
      *
-     * @param {string} token - Access Token (JWT)
-     * @return {Object} the parsed payload in the JWT
+     * @param token - Access Token (JWT)
+     * @return the parsed payload in the JWT
      */
     parseJwt(token: string): JWT;
     /**
@@ -207,7 +205,7 @@ export declare class AuthService {
      * Save JWT to localStorage and in the request headers for accessing
      * protected resources.
      *
-     * @param {JWT} jwt
+     * @param jwt - JWT
      */
     setAuth(jwt: string): void;
     /**

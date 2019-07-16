@@ -59,7 +59,7 @@ export class TokenInterceptor implements HttpInterceptor {
          *  - check the 'Authorization' header for a JWT
          *  - set a new JWT in AuthService
          *
-         * @param {HttpEvent<any>} resp - response from server
+         * @param resp - HttpEvent<any>
          */
         function responseHandler(event: HttpResponse<any>): HttpEvent<any> {
             if (isHttpResponse(event)) {
@@ -86,7 +86,7 @@ export class TokenInterceptor implements HttpInterceptor {
          * The is the error handler when an unauthenticated request
          * comes back from the server...
          *
-         * @param {Error} err - Error from server
+         * @param err - Error from server
          */
         function responseFailureHandler(err: any){
             if (isHttpErrorResponse(event)) {

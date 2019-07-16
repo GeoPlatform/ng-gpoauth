@@ -2,7 +2,7 @@ import { JWT } from './authTypes';
 /**
  * Convience class representing a simplified user.
  *
- * @class GeoPlatformUser
+ * GeoPlatformUser
  */
 export declare class GeoPlatformUser {
     id: string;
