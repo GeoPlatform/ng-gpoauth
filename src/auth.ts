@@ -2,8 +2,7 @@ import { ngMessenger, AuthConfig, JWT, UserProfile } from '../src/authTypes'
 import { GeoPlatformUser } from './GeoPlatformUser'
 import axios from 'axios'
 
-const AUTH_STORAGE_KEY = 'gpoauthJWT'
-const REVOKE_RESPONSE = '<REVOKED>';
+const ACCESS_TOKEN_COOKIE  = 'gpoauth-a'
 
 async function getJson(url: string, jwt?: string) {
   const resp = await axios.get(url, {
@@ -21,11 +20,12 @@ export class AuthService {
 
   config: AuthConfig
   messenger: ngMessenger
+  preveiousTokenPresentCheck: boolean
 
   /**
    *
    * AuthService
-   * 
+   *
    * @param config
    * @param
    */
@@ -43,15 +43,12 @@ export class AuthService {
 
       // Handle logout event
       if(event.data === 'userSignOut'){
-        self.removeAuth()
+        this.messenger.broadcast("userAuthenticated", null)
+        this.messenger.broadcast("userSignOut")
       }
     })
 
     self.init()
-      .then(user => {
-        if(this.config.ALLOW_SSO_LOGIN && !user && this.config.AUTH_TYPE === 'grant')
-          self.ssoCheck()
-      });
   }
 
   /**
@@ -61,13 +58,6 @@ export class AuthService {
   getMessenger(): ngMessenger {
     return this.messenger
   }
-
-  /**
-   * Security wrapper for obfuscating values passed into local storage
-   */
-  private saveToLocalStorage(key: string, value: any) {
-    localStorage.setItem(key, btoa(value));
-  };
 
   /**
    * Retrieve and decode value from localstorage
@@ -85,29 +75,6 @@ export class AuthService {
     }
   };
 
-  private ssoCheck(): void {
-    const self = this;
-    const ssoURL = `${this.config.APP_BASE_URL}/login?sso=true&cachebuster=${(new Date()).getTime()}`
-    const ssoIframe = this.createIframe(ssoURL)
-
-    // Setup ssoIframe specific handlers
-    addEventListener('message', (event: any) => {
-      // Handle SSO login failure
-      if(event.data === 'iframe:ssoFailed'){
-        if(ssoIframe && ssoIframe.remove) // IE 11 - gotcha
-          ssoIframe.remove()
-        // Force login only after SSO has failed
-        if(this.config.FORCE_LOGIN) self.forceLogin()
-      }
-
-      // Handle User Authenticated
-      if(event.data === 'iframe:userAuthenticated'){
-        if(ssoIframe && ssoIframe.remove) // IE 11 - gotcha
-          ssoIframe.remove()
-      }
-    })
-  }
-
   /**
    * We keep this outside the constructor so that other services call
    * call it to trigger the side-effects.
@@ -115,18 +82,60 @@ export class AuthService {
    * @method init
    */
   private async init(): Promise<GeoPlatformUser> {
+    const self = this;
+
+    // Delay init until RPMService is loaded
+    if(this.RPMLoaded() && this.config.loadRPM){
+      const script = document.createElement('script');
+      script.onload = function () {
+          //do stuff with the script
+          self.init();
+      };
+      script.src = `https://s3.amazonaws.com/geoplatform-cdn/gp.rpm/${this.config.RPMVersion || 'stable'}/js/gp.rpm.browser.js`;
+
+      document.head.appendChild(script);
+      return // skip init() till RPM is loaded
+    }
+
+
     const jwt = this.getJWT();
 
     //clean hosturl on redirect from oauth
-    if (this.getJWTFromUrl()) this.removeTokenFromUrl()
-
-    if(jwt) {
-      this.setAuth(jwt)
-      return this.getUserFromJWT(jwt)
-    } else {
-      // call to checkwith Server
-      return await this.getUser();
+    if (this.getJWTFromUrl()) {
+      if(window.history && window.history.replaceState){
+        window.history.replaceState( {} , 'Remove token from URL', window.location.href.replace(/[\?\&]access_token=.*\&token_type=Bearer/, '') )
+      } else {
+        window.location.search.replace(/[\?\&]access_token=.*\&token_type=Bearer/, '')
+      }
     }
+
+    // Setup active session checher
+    this.preveiousTokenPresentCheck = !!jwt
+    setInterval(() => { self.checkForLocalToken() }, this.config.tokenCheckInterval)
+
+    const user = this.getUserFromJWT(jwt)
+    if(user)
+      this.messenger.broadcast("userAuthenticated", user)
+
+    return user
+  }
+
+  /**
+   * Checks for the presence of token in cookie. If there has been a
+   * change (cookie appears or disapears) the fire event handlers to
+   * notify the appliction of the event.
+   */
+  private checkForLocalToken(){
+    const jwt = this.getJWT()
+    const tokenPresent = !!jwt
+    // compare with previous check
+    if (tokenPresent !== this.preveiousTokenPresentCheck)
+      tokenPresent ?
+        this.messenger.broadcast("userAuthenticated", this.getUserFromJWT(jwt)) :
+        this.messenger.broadcast("userSignOut");
+
+    // update previous state for next check
+    this.preveiousTokenPresentCheck = tokenPresent
   }
 
   /**
@@ -192,13 +201,7 @@ export class AuthService {
    * Performs background logout and requests jwt revokation
    */
   async logout(): Promise<void> {
-    // Create iframe to manually call the logout and remove gpoauth cookie
-    // https://stackoverflow.com/questions/13758207/why-is-passportjs-in-node-not-removing-session-on-logout#answer-33786899
-    if(this.config.IDP_BASE_URL)
-      this.createIframe(`${this.config.IDP_BASE_URL}/auth/logout`)
-
-    await getJson(`${this.config.APP_BASE_URL}/revoke?sso=true`, this.getJWT())
-    this.removeAuth() // purge the JWT
+    await getJson(`${this.config.APP_BASE_URL}/revoke`, this.getJWT())
 
     if(this.config.LOGOUT_URL) window.location.href = this.config.LOGOUT_URL
     if(this.config.FORCE_LOGIN) this.forceLogin();
@@ -247,14 +250,14 @@ export class AuthService {
    * @param callback optional function to invoke with the user
    * @return object representing current user
    */
-  getUserSync(callback?: (user: GeoPlatformUser) => any): GeoPlatformUser {
+  getUserSync(): GeoPlatformUser {
     const jwt = this.getJWT();
-      // We allow front end to get user data if grant type and expired
-      // because they will recieve a new token automatically when
-      // making a call to the client(application)
-      return this.isImplicitJWT(jwt) && this.isExpired(jwt) ?
-              null :
-              this.getUserFromJWT(jwt);
+    // We allow front end to get user data if grant type and expired
+    // because they will recieve a new token automatically when
+    // making a call to the client(application)
+    return this.isImplicitJWT(jwt) && this.isExpired(jwt) ?
+            null :
+            this.getUserFromJWT(jwt);
   }
 
   /**
@@ -309,12 +312,6 @@ export class AuthService {
     }
     // Case 3 - ALLOW_IFRAME_LOGIN: false | FORCE_LOGIN: true
     if(!this.config.ALLOW_IFRAME_LOGIN && this.config.FORCE_LOGIN){
-      addEventListener('message', (event: any) => {
-        // Handle SSO login failure
-        if(event.data === 'iframe:ssoFailed'){
-          return this.getUser()
-        }
-      })
       return null
     }
     // Case 4 - ALLOW_IFRAME_LOGIN: false | FORCE_LOGIN: false
@@ -335,7 +332,7 @@ export class AuthService {
 
     // If no local JWT
     if(!jwt) {
-      const freshJwt = await this.checkWithClient("");
+      const freshJwt = await this.checkWithClient();
 
       return jwt && jwt.length ?
               this.getUserFromJWT(freshJwt) :
@@ -343,8 +340,8 @@ export class AuthService {
     }
     if(!this.isImplicitJWT(jwt)){ // Grant token
       return this.isExpired(jwt) ?
-              await this.checkWithClient(jwt)
-                .then(jwt => this.getUserFromJWT(jwt)) : // Check with server
+              await this.checkWithClient() // Check with server
+                        .then(jwt => jwt && this.getUserFromJWT(jwt)) :
               this.getUserFromJWT(jwt);
 
     } else { // Implicit JWT
@@ -367,23 +364,11 @@ export class AuthService {
    *
    * @return Promise<jwt>
    */
-  async checkWithClient(originalJWT: string): Promise<any> {
-    if(this.config.AUTH_TYPE === 'token'){
-      return null
-    } else {
-
-      const resp = await axios(`${this.config.APP_BASE_URL}/checktoken`, {
-                    headers: {
-                      'Authorization' : originalJWT ? `Bearer ${originalJWT}` : ''
-                    }
-                  })
-
-      const header = resp.headers['authorization']
-      const newJWT = header && header.replace('Bearer','').trim();
-
-      if(header && newJWT.length) this.setAuth(newJWT);
-      return newJWT ? newJWT : originalJWT;
-    }
+  async checkWithClient(): Promise<any> {
+    return this.config.AUTH_TYPE === 'token' ?
+                null :
+                axios(`${this.config.APP_BASE_URL}/checktoken`)
+                          .then(() => this.getJWTfromLocalStorage())
   }
 
   //=====================================================
@@ -404,6 +389,41 @@ export class AuthService {
   };
 
   /**
+   * Is RPM library loaded already?
+   */
+  RPMLoaded():  boolean {
+   return typeof RPMService != 'undefined'
+  }
+
+  /**
+   * Get an associated array of cookies.
+   */
+  private getCookieObject(): StringObj  {
+    return document.cookie.split(';')
+                          .map(c => c.trim().split('='))
+                          .reduce((acc: StringObj, pair) => {
+                            acc[pair[0]] = pair[1]
+                            return acc
+                          }, {})
+  }
+
+  /**
+   * Extract and decode from cookie
+   *
+   * @param key
+   */
+  private getFromCookie(key: string) {
+    const raw = this.getCookieObject()[key]
+    try{
+      return raw ?
+              atob(decodeURIComponent(raw)) :
+              undefined;
+    } catch (e){ // Catch bad encoding or formally not encoded
+      return undefined;
+    }
+  };
+
+  /**
    * Load the JWT stored in local storage.
    *
    * @method getJWTfromLocalStorage
@@ -411,7 +431,7 @@ export class AuthService {
    * @return JWT Token
    */
   getJWTfromLocalStorage(): string {
-    return this.getFromLocalStorage(AUTH_STORAGE_KEY)
+    return this.getFromCookie(ACCESS_TOKEN_COOKIE)
   };
 
   /**
@@ -431,16 +451,6 @@ export class AuthService {
     } else {
       return jwt;
     }
-  };
-
-  /**
-   * Remove the JWT saved in local storge.
-   *
-   * @method clearLocalStorageJWT
-   *
-   */
-  private clearLocalStorageJWT(): void {
-    localStorage.removeItem(AUTH_STORAGE_KEY)
   };
 
   /**
@@ -500,31 +510,6 @@ export class AuthService {
     var valid = (parsed && parsed.exp && parsed.exp * 1000 > Date.now()) ? true : false;
     return valid;
   };
-
-  /**
-   * Save JWT to localStorage and in the request headers for accessing
-   * protected resources.
-   *
-   * @param jwt - JWT
-   */
-  public setAuth(jwt: string): void {
-    if(jwt == REVOKE_RESPONSE){
-      this.logout()
-    } else {
-      this.saveToLocalStorage(AUTH_STORAGE_KEY, jwt)
-      this.messenger.broadcast("userAuthenticated", this.getUserFromJWT(jwt))
-    }
-  };
-
-  /**
-   * Purge the JWT from localStorage and authorization headers.
-   */
-  private removeAuth(): void {
-    localStorage.removeItem(AUTH_STORAGE_KEY)
-    // Send null user as well (backwards compatability)
-    this.messenger.broadcast("userAuthenticated", null)
-    this.messenger.broadcast("userSignOut")
-  };
 }
 
 
@@ -533,6 +518,5 @@ export const DefaultAuthConf: AuthConfig = {
   APP_BASE_URL: '', // absolute path // use . for relative path
   ALLOW_IFRAME_LOGIN: true,
   FORCE_LOGIN: false,
-  ALLOW_DEV_EDITS: false,
-  ALLOW_SSO_LOGIN: true
+  ALLOW_DEV_EDITS: false
 }

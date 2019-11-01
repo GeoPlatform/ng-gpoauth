@@ -38,8 +38,50 @@ Apps have the ability to allow for authentication via iframe and keep the user f
 
 See the [Configuration](https://github.com/GeoPlatform/ng-gpoauth#configuration) section for options.
 
+## AngularJS (Angular 1)
 
-### Angular (Angular 5+)
+
+`ng-gpoauth` exposes a service facotry that can be used to create a service used in angularJS applications. The basic workflow is to utilize the ServiceFactory to make your own service that is used in the application.
+
+Setup the service in app.js:
+```javascript
+// app.js
+
+angular.module('myApp', ['gp-gpoauth', ...])
+.config(function(){
+  // your configs and other init.
+});
+
+
+// Register wrapper service for dependency injection.
+angular.module('gp-gpoauth')
+.service('AuthenticationService', function($injector){
+  const authServiceFact = $injector.get('ng-authServiceFactory');
+
+  // pull in your custom settings
+  const myAuthSettings = {
+      //...
+  }
+
+  // Create a new Service that any directive/controller/service can load
+  return authServiceFact(myAuthSettings)
+});
+```
+
+Use the service in a component/module/etc.:
+```javascript
+// myModule.js
+
+angular.module('myModule', [])
+.controller('myController', ['AuthenticationService', function(AuthenticationService){
+  // Interact with ng-gpoauth service
+  AuthenticationService.login()
+}])
+```
+
+<br>
+
+## Angular (Angular 5+)
 `ng-gpoauth` exposes a service that can be utilized thought out Angular 5+ application.
 
 
@@ -105,16 +147,10 @@ export class AppComponent {
     }
 }
 ```
-> Developer Notes:
->
-> `ng serve` will force reloads when SSO is enabled. When running locally with
-> ng serve make sure to set `ALLOW_SSO_LOGIN` to `false`.
 
 <br>
 
-### AngularJS (Angular 1)
 
-> Comming soon!
 
 ---
 <br>
@@ -204,14 +240,13 @@ The following are property on the config object passed into `ng-gpoauth` (see th
 | property | required | description | type | default
 |---|---|---|---|---|
 | IDP_BASE_URL | yes | URL of the Oauth serice. | string | N/A |
+| APP_ID | yes* | Id (client_id) of appliction registerd with the Oauth service provider. | string | N/A |
 | APP_BASE_URL | no | Allows for settings a URL prefix checking `node-gpoauth` endpoints like `/checktoken`. Can be either an absolute or relative path to prefix to reqeusts: Example: '/authendpoints' | string | "" |
 | AUTH_TYPE | no | Type of token to request from gpoauth.  | token, grant | grant |
-| ALLOW_SSO_LOGIN | no | If enabled `ng-gpoauth` will create an invisible background iframe for logging in. | boolean | true |
 | ALLOW_IFRAME_LOGIN | no | Allow `ng-gpoauth` to use an ifame instead of redirect for authenticating a user. This will allow users to retain their in-memory edits while authenticating. | boolean | false |
 | FORCE_LOGIN | no | Should user be forced to redirct or show login screen when its detected that they are unauthenticated | boolean | false |
-| APP_ID | yes* | Id (client_id) of appliction registerd with the Oauth service provider. | string | N/A |
 | CALLBACK | no | URL to call back when re-directed from oauth authentication loop. | string | /login |
 | LOGIN_URL | no | URL to redirect browser to when auth type is 'token'. | string | /login |
 | LOGOUT_URL | no | Url to redirec user to when they preform the logout action. | string | |
 
-\* only required configuration when authorization is type 'token'.
+\* only required configuration when authorization is type `token` (implicit, no backend server support).
