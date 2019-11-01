@@ -23,7 +23,9 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng-packagr -p package.json",
+    "build": "npm run-script angularJS ; npm run-script angular",
+    "angularJS": "tsc -p tsconfig.angularJS.json",
+    "angular": "ng-packagr -p package.json",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e"

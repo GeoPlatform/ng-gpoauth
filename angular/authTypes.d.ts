@@ -1,4 +1,3 @@
-import { Subject } from "rxjs"
 import { GeoPlatformUser } from './GeoPlatformUser'
 
 // Common types:
@@ -104,7 +103,7 @@ export type MSG = {
  * An abstracted messanger object so that any version of Angular
  * (or other framework) is able to implement a messenger.
  */
-declare interface ngMessenger<T= Subject<MSG>> {
+declare interface Messenger<T=any> {
   /**
    * Get the raw messaging mechanism
    */

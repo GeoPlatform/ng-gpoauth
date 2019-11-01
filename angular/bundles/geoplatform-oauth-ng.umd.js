@@ -1181,7 +1181,7 @@
     exports.ngGpoauthFactory = ngGpoauthFactory$1;
     exports.AuthService = AuthService;
     exports.GeoPlatformUser = GeoPlatformUser;
-    exports.ɵd = msgProvider;
+    exports.ɵc = msgProvider;
     exports.ɵa = DefaultAuthConf;
 
     Object.defineProperty(exports, '__esModule', { value: true });

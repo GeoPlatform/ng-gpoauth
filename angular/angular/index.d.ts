@@ -1,11 +1,11 @@
 /**
  * For Angluar 2+ (TypeScript)
  */
-import { MSG, ngMessenger, AuthConfig, authMessage } from '../authTypes';
+import { MSG, AuthConfig, authMessage, Messenger } from '../authTypes';
 import { AuthService } from '../auth';
 import { GeoPlatformUser } from '../GeoPlatformUser';
 import { Subject } from 'rxjs';
-export declare class msgProvider implements ngMessenger<Subject<MSG>> {
+export declare class msgProvider implements Messenger<Subject<MSG>> {
     sub: Subject<MSG>;
     constructor();
     raw(): Subject<MSG>;

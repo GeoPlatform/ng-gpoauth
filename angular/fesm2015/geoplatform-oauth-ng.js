@@ -681,6 +681,6 @@ function ngGpoauthFactory$1(config) {
  * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
 
-export { ngGpoauthFactory$1 as ngGpoauthFactory, AuthService, GeoPlatformUser, msgProvider as ɵd, DefaultAuthConf as ɵa };
+export { ngGpoauthFactory$1 as ngGpoauthFactory, AuthService, GeoPlatformUser, msgProvider as ɵc, DefaultAuthConf as ɵa };
 
 //# sourceMappingURL=geoplatform-oauth-ng.js.map

@@ -1,11 +1,11 @@
-import { ngMessenger, AuthConfig, JWT, UserProfile } from '../src/authTypes';
+import { Messenger, AuthConfig, JWT, UserProfile } from './authTypes';
 import { GeoPlatformUser } from './GeoPlatformUser';
 /**
  * Authentication Service
  */
 export declare class AuthService {
     config: AuthConfig;
-    messenger: ngMessenger;
+    messenger: Messenger;
     preveiousTokenPresentCheck: boolean;
     /**
      *
@@ -14,12 +14,12 @@ export declare class AuthService {
      * @param config
      * @param
      */
-    constructor(config: AuthConfig, ngMessenger: ngMessenger);
+    constructor(config: AuthConfig, ngMessenger: Messenger);
     /**
      * Expose ngMessenger so that appliction code is able to
      * subscribe to notifications sent by ng-gpoauth
      */
-    getMessenger(): ngMessenger;
+    getMessenger(): Messenger;
     /**
      * Retrieve and decode value from localstorage
      *

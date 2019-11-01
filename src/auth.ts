@@ -1,9 +1,8 @@
 declare var window: any
 
-import { ngMessenger, AuthConfig, JWT, UserProfile, StringObj } from '../src/authTypes'
+import { Messenger, AuthConfig, JWT, UserProfile, StringObj } from './authTypes'
 import { GeoPlatformUser } from './GeoPlatformUser'
 import axios from 'axios'
-
 
 
 const ACCESS_TOKEN_COOKIE  = 'gpoauth-a'
@@ -23,7 +22,7 @@ async function getJson(url: string, jwt?: string) {
 export class AuthService {
 
   config: AuthConfig
-  messenger: ngMessenger
+  messenger: Messenger
   preveiousTokenPresentCheck: boolean
 
   /**
@@ -33,7 +32,7 @@ export class AuthService {
    * @param config
    * @param
    */
-  constructor(config: AuthConfig, ngMessenger: ngMessenger){
+  constructor(config: AuthConfig, ngMessenger: Messenger){
     const self = this;
     this.config = config;
     this.messenger = ngMessenger
@@ -59,7 +58,7 @@ export class AuthService {
    * Expose ngMessenger so that appliction code is able to
    * subscribe to notifications sent by ng-gpoauth
    */
-  getMessenger(): ngMessenger {
+  getMessenger(): Messenger {
     return this.messenger
   }
 
