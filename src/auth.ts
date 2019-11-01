@@ -1,6 +1,10 @@
-import { ngMessenger, AuthConfig, JWT, UserProfile } from '../src/authTypes'
+declare var window: any
+
+import { ngMessenger, AuthConfig, JWT, UserProfile, StringObj } from '../src/authTypes'
 import { GeoPlatformUser } from './GeoPlatformUser'
 import axios from 'axios'
+
+
 
 const ACCESS_TOKEN_COOKIE  = 'gpoauth-a'
 
@@ -392,7 +396,7 @@ export class AuthService {
    * Is RPM library loaded already?
    */
   RPMLoaded():  boolean {
-   return typeof RPMService != 'undefined'
+   return typeof window.RPMService != 'undefined'
   }
 
   /**

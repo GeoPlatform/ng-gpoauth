@@ -1,6 +1,9 @@
 import { Subject } from "rxjs"
 import { GeoPlatformUser } from './GeoPlatformUser'
 
+// Common types:
+type StringObj = {[x: string]: string}
+
 /*
  * Common types to ng-gpoauth (used in both AngularJS and Angular(2+))
  */
@@ -18,7 +21,6 @@ export type AuthConfig = {
   AUTH_TYPE?: 'grant' | 'token'
   IDP_BASE_URL?: string
   APP_BASE_URL?: string
-  ALLOW_SSO_LOGIN?: boolean
   APP_ID?: boolean
   ALLOW_IFRAME_LOGIN?: boolean
   FORCE_LOGIN?: boolean
@@ -26,6 +28,10 @@ export type AuthConfig = {
   LOGIN_URL?: string
   LOGOUT_URL?: string
   ALLOW_DEV_EDITS?: boolean
+  tokenCheckInterval?: number
+  // RPM Settings
+  loadRPM?: boolean,
+  RPMVersion?: string
 }
 
 /**

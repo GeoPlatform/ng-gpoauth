@@ -1,6 +1,9 @@
 import { Subject } from "rxjs"
 import { GeoPlatformUser } from './GeoPlatformUser'
 
+// Common types:
+type StringObj = {[x: string]: string}
+
 /*
  * Common types to ng-gpoauth (used in both AngularJS and Angular(2+))
  */

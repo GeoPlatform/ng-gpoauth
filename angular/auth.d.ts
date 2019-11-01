@@ -6,6 +6,7 @@ import { GeoPlatformUser } from './GeoPlatformUser';
 export declare class AuthService {
     config: AuthConfig;
     messenger: ngMessenger;
+    preveiousTokenPresentCheck: boolean;
     /**
      *
      * AuthService
@@ -20,16 +21,11 @@ export declare class AuthService {
      */
     getMessenger(): ngMessenger;
     /**
-     * Security wrapper for obfuscating values passed into local storage
-     */
-    private saveToLocalStorage;
-    /**
      * Retrieve and decode value from localstorage
      *
      * @param key
      */
     getFromLocalStorage(key: string): string;
-    private ssoCheck;
     /**
      * We keep this outside the constructor so that other services call
      * call it to trigger the side-effects.
@@ -37,6 +33,12 @@ export declare class AuthService {
      * @method init
      */
     private init;
+    /**
+     * Checks for the presence of token in cookie. If there has been a
+     * change (cookie appears or disapears) the fire event handlers to
+     * notify the appliction of the event.
+     */
+    private checkForLocalToken;
     /**
      * Clears the access_token property from the URL.
      */
@@ -83,7 +85,7 @@ export declare class AuthService {
      * @param callback optional function to invoke with the user
      * @return object representing current user
      */
-    getUserSync(callback?: (user: GeoPlatformUser) => any): GeoPlatformUser;
+    getUserSync(): GeoPlatformUser;
     /**
      * Promise version of get user.
      *
@@ -137,7 +139,7 @@ export declare class AuthService {
      *
      * @return Promise<jwt>
      */
-    checkWithClient(originalJWT: string): Promise<any>;
+    checkWithClient(): Promise<any>;
     /**
      * Extract token from current URL
      *
@@ -146,6 +148,20 @@ export declare class AuthService {
      * @return JWT Token (raw string)
      */
     getJWTFromUrl(): string;
+    /**
+     * Is RPM library loaded already?
+     */
+    RPMLoaded(): boolean;
+    /**
+     * Get an associated array of cookies.
+     */
+    private getCookieObject;
+    /**
+     * Extract and decode from cookie
+     *
+     * @param key
+     */
+    private getFromCookie;
     /**
      * Load the JWT stored in local storage.
      *
@@ -164,13 +180,6 @@ export declare class AuthService {
      * @return JWT Token
      */
     getJWT(): string;
-    /**
-     * Remove the JWT saved in local storge.
-     *
-     * @method clearLocalStorageJWT
-     *
-     */
-    private clearLocalStorageJWT;
     /**
      * Is a token expired.
      *
@@ -201,16 +210,5 @@ export declare class AuthService {
      *  automatically in the node-gpoauth module.
      */
     validateJwt(token: string): boolean;
-    /**
-     * Save JWT to localStorage and in the request headers for accessing
-     * protected resources.
-     *
-     * @param jwt - JWT
-     */
-    setAuth(jwt: string): void;
-    /**
-     * Purge the JWT from localStorage and authorization headers.
-     */
-    private removeAuth;
 }
 export declare const DefaultAuthConf: AuthConfig;

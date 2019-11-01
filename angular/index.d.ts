@@ -12,4 +12,3 @@ export declare function ngGpoauthFactory(config?: AuthConfig): AuthService;
 export { AuthService } from './auth';
 export { AuthConfig } from './authTypes';
 export { GeoPlatformUser } from './GeoPlatformUser';
-export { TokenInterceptor } from './angular/interceptor';

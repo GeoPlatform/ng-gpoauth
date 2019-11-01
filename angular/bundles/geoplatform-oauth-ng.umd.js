@@ -1,8 +1,8 @@
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('axios'), require('rxjs'), require('@angular/core'), require('rxjs/operators')) :
-    typeof define === 'function' && define.amd ? define('@geoplatform/oauth-ng', ['exports', 'axios', 'rxjs', '@angular/core', 'rxjs/operators'], factory) :
-    (factory((global.geoplatform = global.geoplatform || {}, global.geoplatform['oauth-ng'] = {}),global.axios,global.rxjs,global.ng.core,global.rxjs.operators));
-}(this, (function (exports,axios,rxjs,core,operators) { 'use strict';
+    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('axios'), require('rxjs')) :
+    typeof define === 'function' && define.amd ? define('@geoplatform/oauth-ng', ['exports', 'axios', 'rxjs'], factory) :
+    (factory((global.geoplatform = global.geoplatform || {}, global.geoplatform['oauth-ng'] = {}),global.axios,global.rxjs));
+}(this, (function (exports,axios,rxjs) { 'use strict';
 
     axios = axios && axios.hasOwnProperty('default') ? axios['default'] : axios;
 
@@ -191,9 +191,7 @@
      * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
      */
     /** @type {?} */
-    var AUTH_STORAGE_KEY = 'gpoauthJWT';
-    /** @type {?} */
-    var REVOKE_RESPONSE = '<REVOKED>';
+    var ACCESS_TOKEN_COOKIE = 'gpoauth-a';
     /**
      * @param {?} url
      * @param {?=} jwt
@@ -242,14 +240,11 @@
                 }
                 // Handle logout event
                 if (event.data === 'userSignOut') {
-                    self.removeAuth();
+                    _this.messenger.broadcast("userAuthenticated", null);
+                    _this.messenger.broadcast("userSignOut");
                 }
             });
-            self.init()
-                .then(function (user) {
-                if (_this.config.ALLOW_SSO_LOGIN && !user && _this.config.AUTH_TYPE === 'grant')
-                    self.ssoCheck();
-            });
+            self.init();
         }
         /**
          * Expose ngMessenger so that appliction code is able to
@@ -267,21 +262,6 @@
          */
             function () {
                 return this.messenger;
-            };
-        /**
-         * Security wrapper for obfuscating values passed into local storage
-         * @param {?} key
-         * @param {?} value
-         * @return {?}
-         */
-        AuthService.prototype.saveToLocalStorage = /**
-         * Security wrapper for obfuscating values passed into local storage
-         * @param {?} key
-         * @param {?} value
-         * @return {?}
-         */
-            function (key, value) {
-                localStorage.setItem(key, btoa(value));
             };
         /**
          * Retrieve and decode value from localstorage
@@ -314,39 +294,6 @@
                 }
             };
         /**
-         * @return {?}
-         */
-        AuthService.prototype.ssoCheck = /**
-         * @return {?}
-         */
-            function () {
-                var _this = this;
-                /** @type {?} */
-                var self = this;
-                /** @type {?} */
-                var ssoURL = this.config.APP_BASE_URL + "/login?sso=true&cachebuster=" + (new Date()).getTime();
-                /** @type {?} */
-                var ssoIframe = this.createIframe(ssoURL);
-                // Setup ssoIframe specific handlers
-                addEventListener('message', function (event) {
-                    // Handle SSO login failure
-                    if (event.data === 'iframe:ssoFailed') {
-                        if (ssoIframe && ssoIframe.remove) // IE 11 - gotcha
-                            // IE 11 - gotcha
-                            ssoIframe.remove();
-                        // Force login only after SSO has failed
-                        if (_this.config.FORCE_LOGIN)
-                            self.forceLogin();
-                    }
-                    // Handle User Authenticated
-                    if (event.data === 'iframe:userAuthenticated') {
-                        if (ssoIframe && ssoIframe.remove) // IE 11 - gotcha
-                            // IE 11 - gotcha
-                            ssoIframe.remove();
-                    }
-                });
-            };
-        /**
          * We keep this outside the constructor so that other services call
          * call it to trigger the side-effects.
          *
@@ -362,25 +309,64 @@
          */
             function () {
                 return __awaiter(this, void 0, void 0, function () {
-                    var jwt;
+                    var self, script, jwt, user;
                     return __generator(this, function (_a) {
-                        switch (_a.label) {
-                            case 0:
-                                jwt = this.getJWT();
-                                //clean hosturl on redirect from oauth
-                                if (this.getJWTFromUrl())
-                                    this.removeTokenFromUrl();
-                                if (!jwt)
-                                    return [3 /*break*/, 1];
-                                this.setAuth(jwt);
-                                return [2 /*return*/, this.getUserFromJWT(jwt)];
-                            case 1: return [4 /*yield*/, this.getUser()];
-                            case 2:
-                                // call to checkwith Server
-                                return [2 /*return*/, _a.sent()];
+                        self = this;
+                        // Delay init until RPMService is loaded
+                        if (this.RPMLoaded() && this.config.loadRPM) {
+                            script = document.createElement('script');
+                            script.onload = function () {
+                                //do stuff with the script
+                                self.init();
+                            };
+                            script.src = "https://s3.amazonaws.com/geoplatform-cdn/gp.rpm/" + (this.config.RPMVersion || 'stable') + "/js/gp.rpm.browser.js";
+                            document.head.appendChild(script);
+                            return [2 /*return*/]; // skip init() till RPM is loaded
                         }
+                        jwt = this.getJWT();
+                        //clean hosturl on redirect from oauth
+                        if (this.getJWTFromUrl()) {
+                            if (window.history && window.history.replaceState) {
+                                window.history.replaceState({}, 'Remove token from URL', window.location.href.replace(/[\?\&]access_token=.*\&token_type=Bearer/, ''));
+                            }
+                            else {
+                                window.location.search.replace(/[\?\&]access_token=.*\&token_type=Bearer/, '');
+                            }
+                        }
+                        // Setup active session checher
+                        this.preveiousTokenPresentCheck = !!jwt;
+                        setInterval(function () { self.checkForLocalToken(); }, this.config.tokenCheckInterval);
+                        user = this.getUserFromJWT(jwt);
+                        if (user)
+                            this.messenger.broadcast("userAuthenticated", user);
+                        return [2 /*return*/, user];
                     });
                 });
+            };
+        /**
+         * Checks for the presence of token in cookie. If there has been a
+         * change (cookie appears or disapears) the fire event handlers to
+         * notify the appliction of the event.
+         * @return {?}
+         */
+        AuthService.prototype.checkForLocalToken = /**
+         * Checks for the presence of token in cookie. If there has been a
+         * change (cookie appears or disapears) the fire event handlers to
+         * notify the appliction of the event.
+         * @return {?}
+         */
+            function () {
+                /** @type {?} */
+                var jwt = this.getJWT();
+                /** @type {?} */
+                var tokenPresent = !!jwt;
+                // compare with previous check
+                if (tokenPresent !== this.preveiousTokenPresentCheck)
+                    tokenPresent ?
+                        this.messenger.broadcast("userAuthenticated", this.getUserFromJWT(jwt)) :
+                        this.messenger.broadcast("userSignOut");
+                // update previous state for next check
+                this.preveiousTokenPresentCheck = tokenPresent;
             };
         /**
          * Clears the access_token property from the URL.
@@ -476,15 +462,9 @@
                 return __awaiter(this, void 0, void 0, function () {
                     return __generator(this, function (_a) {
                         switch (_a.label) {
-                            case 0:
-                                // Create iframe to manually call the logout and remove gpoauth cookie
-                                // https://stackoverflow.com/questions/13758207/why-is-passportjs-in-node-not-removing-session-on-logout#answer-33786899
-                                if (this.config.IDP_BASE_URL)
-                                    this.createIframe(this.config.IDP_BASE_URL + "/auth/logout");
-                                return [4 /*yield*/, getJson(this.config.APP_BASE_URL + "/revoke?sso=true", this.getJWT())];
+                            case 0: return [4 /*yield*/, getJson(this.config.APP_BASE_URL + "/revoke", this.getJWT())];
                             case 1:
                                 _a.sent();
-                                this.removeAuth(); // purge the JWT
                                 if (this.config.LOGOUT_URL)
                                     window.location.href = this.config.LOGOUT_URL;
                                 if (this.config.FORCE_LOGIN)
@@ -590,7 +570,6 @@
          * Side Effects:
          *  - Will redirect users if no valid JWT was found
          *
-         * @param {?=} callback optional function to invoke with the user
          * @return {?} object representing current user
          */
         AuthService.prototype.getUserSync = /**
@@ -600,10 +579,9 @@
          * Side Effects:
          *  - Will redirect users if no valid JWT was found
          *
-         * @param {?=} callback optional function to invoke with the user
          * @return {?} object representing current user
          */
-            function (callback) {
+            function () {
                 /** @type {?} */
                 var jwt = this.getJWT();
                 // We allow front end to get user data if grant type and expired
@@ -709,7 +687,6 @@
             function () {
                 return __awaiter(this, void 0, void 0, function () {
                     var user;
-                    var _this = this;
                     return __generator(this, function (_a) {
                         switch (_a.label) {
                             case 0: return [4 /*yield*/, this.check()];
@@ -730,12 +707,6 @@
                                 }
                                 // Case 3 - ALLOW_IFRAME_LOGIN: false | FORCE_LOGIN: true
                                 if (!this.config.ALLOW_IFRAME_LOGIN && this.config.FORCE_LOGIN) {
-                                    addEventListener('message', function (event) {
-                                        // Handle SSO login failure
-                                        if (event.data === 'iframe:ssoFailed') {
-                                            return _this.getUser();
-                                        }
-                                    });
                                     return [2 /*return*/, null];
                                 }
                                 // Case 4 - ALLOW_IFRAME_LOGIN: false | FORCE_LOGIN: false
@@ -778,7 +749,7 @@
                                 jwt = this.getJWT();
                                 if (!!jwt)
                                     return [3 /*break*/, 2];
-                                return [4 /*yield*/, this.checkWithClient("")];
+                                return [4 /*yield*/, this.checkWithClient()];
                             case 1:
                                 freshJwt = _b.sent();
                                 return [2 /*return*/, jwt && jwt.length ?
@@ -789,8 +760,8 @@
                                     return [3 /*break*/, 6];
                                 if (!this.isExpired(jwt))
                                     return [3 /*break*/, 4];
-                                return [4 /*yield*/, this.checkWithClient(jwt)
-                                        .then(function (jwt) { return _this.getUserFromJWT(jwt); })];
+                                return [4 /*yield*/, this.checkWithClient() // Check with server
+                                        .then(function (jwt) { return jwt && _this.getUserFromJWT(jwt); })];
                             case 3:
                                 _a = _b.sent();
                                 return [3 /*break*/, 5];
@@ -829,7 +800,6 @@
          *    https://www.digitalocean.com/community/tutorials/an-introduction-to-oauth-2
          *
          * \@method checkWithClient
-         * @param {?} originalJWT
          * @return {?} Promise<jwt>
          */
         AuthService.prototype.checkWithClient = /**
@@ -841,31 +811,16 @@
          *    https://www.digitalocean.com/community/tutorials/an-introduction-to-oauth-2
          *
          * \@method checkWithClient
-         * @param {?} originalJWT
          * @return {?} Promise<jwt>
          */
-            function (originalJWT) {
+            function () {
                 return __awaiter(this, void 0, void 0, function () {
-                    var resp, header, newJWT;
+                    var _this = this;
                     return __generator(this, function (_a) {
-                        switch (_a.label) {
-                            case 0:
-                                if (!(this.config.AUTH_TYPE === 'token'))
-                                    return [3 /*break*/, 1];
-                                return [2 /*return*/, null];
-                            case 1: return [4 /*yield*/, axios(this.config.APP_BASE_URL + "/checktoken", {
-                                    headers: {
-                                        'Authorization': originalJWT ? "Bearer " + originalJWT : ''
-                                    }
-                                })];
-                            case 2:
-                                resp = _a.sent();
-                                header = resp.headers['authorization'];
-                                newJWT = header && header.replace('Bearer', '').trim();
-                                if (header && newJWT.length)
-                                    this.setAuth(newJWT);
-                                return [2 /*return*/, newJWT ? newJWT : originalJWT];
-                        }
+                        return [2 /*return*/, this.config.AUTH_TYPE === 'token' ?
+                                null :
+                                axios(this.config.APP_BASE_URL + "/checktoken")
+                                    .then(function () { return _this.getJWTfromLocalStorage(); })];
                     });
                 });
             };
@@ -901,6 +856,61 @@
                 return res && res[1];
             };
         /**
+         * Is RPM library loaded already?
+         */
+        /**
+         * Is RPM library loaded already?
+         * @return {?}
+         */
+        AuthService.prototype.RPMLoaded = /**
+         * Is RPM library loaded already?
+         * @return {?}
+         */
+            function () {
+                return typeof window.RPMService != 'undefined';
+            };
+        /**
+         * Get an associated array of cookies.
+         * @return {?}
+         */
+        AuthService.prototype.getCookieObject = /**
+         * Get an associated array of cookies.
+         * @return {?}
+         */
+            function () {
+                return document.cookie.split(';')
+                    .map(function (c) { return c.trim().split('='); })
+                    .reduce(function (acc, pair) {
+                    acc[pair[0]] = pair[1];
+                    return acc;
+                }, {});
+            };
+        /**
+         * Extract and decode from cookie
+         *
+         * @param {?} key
+         * @return {?}
+         */
+        AuthService.prototype.getFromCookie = /**
+         * Extract and decode from cookie
+         *
+         * @param {?} key
+         * @return {?}
+         */
+            function (key) {
+                /** @type {?} */
+                var raw = this.getCookieObject()[key];
+                try {
+                    return raw ?
+                        atob(decodeURIComponent(raw)) :
+                        undefined;
+                }
+                catch (e) { // Catch bad encoding or formally not encoded
+                    // Catch bad encoding or formally not encoded
+                    return undefined;
+                }
+            };
+        /**
          * Load the JWT stored in local storage.
          *
          * @method getJWTfromLocalStorage
@@ -922,7 +932,7 @@
          * @return {?} JWT Token
          */
             function () {
-                return this.getFromLocalStorage(AUTH_STORAGE_KEY);
+                return this.getFromCookie(ACCESS_TOKEN_COOKIE);
             };
         /**
          * Attempt and pull JWT from the following locations (in order):
@@ -961,23 +971,6 @@
                 else {
                     return jwt;
                 }
-            };
-        /**
-         * Remove the JWT saved in local storge.
-         *
-         * \@method clearLocalStorageJWT
-         *
-         * @return {?}
-         */
-        AuthService.prototype.clearLocalStorageJWT = /**
-         * Remove the JWT saved in local storge.
-         *
-         * \@method clearLocalStorageJWT
-         *
-         * @return {?}
-         */
-            function () {
-                localStorage.removeItem(AUTH_STORAGE_KEY);
             };
         /**
          * Is a token expired.
@@ -1102,43 +1095,6 @@
                 var valid = (parsed && parsed.exp && parsed.exp * 1000 > Date.now()) ? true : false;
                 return valid;
             };
-        /**
-         * Save JWT to localStorage and in the request headers for accessing
-         * protected resources.
-         *
-         * @param {?} jwt - JWT
-         * @return {?}
-         */
-        AuthService.prototype.setAuth = /**
-         * Save JWT to localStorage and in the request headers for accessing
-         * protected resources.
-         *
-         * @param {?} jwt - JWT
-         * @return {?}
-         */
-            function (jwt) {
-                if (jwt == REVOKE_RESPONSE) {
-                    this.logout();
-                }
-                else {
-                    this.saveToLocalStorage(AUTH_STORAGE_KEY, jwt);
-                    this.messenger.broadcast("userAuthenticated", this.getUserFromJWT(jwt));
-                }
-            };
-        /**
-         * Purge the JWT from localStorage and authorization headers.
-         * @return {?}
-         */
-        AuthService.prototype.removeAuth = /**
-         * Purge the JWT from localStorage and authorization headers.
-         * @return {?}
-         */
-            function () {
-                localStorage.removeItem(AUTH_STORAGE_KEY);
-                // Send null user as well (backwards compatability)
-                this.messenger.broadcast("userAuthenticated", null);
-                this.messenger.broadcast("userSignOut");
-            };
         return AuthService;
     }());
     /** @type {?} */
@@ -1148,116 +1104,8 @@
         // absolute path // use . for relative path
         ALLOW_IFRAME_LOGIN: true,
         FORCE_LOGIN: false,
-        ALLOW_DEV_EDITS: false,
-        ALLOW_SSO_LOGIN: true
+        ALLOW_DEV_EDITS: false
     };
-
-    /**
-     * @fileoverview added by tsickle
-     * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
-     */
-    /**
-     * Angular boilerplate because:
-     * Angular6 HttpErrorResponse <> Angular7 HTTErrorPResponse
-     * @param {?} evt
-     * @return {?}
-     */
-    function isHttpErrorResponse(evt) {
-        return evt && evt.error;
-    }
-    /**
-     * Angular boilerplate because:
-     * Angular6 HttpResponse <> Angular7 HTTPResponse
-     * @param {?} evt
-     * @return {?}
-     */
-    function isHttpResponse(evt) {
-        return evt && evt.body;
-    }
-    var TokenInterceptor = /** @class */ (function () {
-        function TokenInterceptor(authService) {
-            this.authService = authService;
-        }
-        /**
-         * @param {?} request
-         * @param {?} next
-         * @return {?}
-         */
-        TokenInterceptor.prototype.intercept = /**
-         * @param {?} request
-         * @param {?} next
-         * @return {?}
-         */
-            function (request, next) {
-                /** @type {?} */
-                var self = this;
-                /** @type {?} */
-                var jwt = self.authService.getJWT();
-                if (jwt) {
-                    // Send our current token
-                    request = request.clone({
-                        setHeaders: {
-                            Authorization: "Bearer " + jwt
-                        }
-                    });
-                }
-                /**
-                 * Handler for successful responses returned from the server.
-                 * This function must to the following:
-                 *  - check the URL for a JWT
-                 *  - check the 'Authorization' header for a JWT
-                 *  - set a new JWT in AuthService
-                 *
-                 * @param {?} event
-                 * @return {?}
-                 */
-                function responseHandler(event) {
-                    if (isHttpResponse(event)) {
-                        /** @type {?} */
-                        var AuthHeader = event.headers.get('Authorization') || '';
-                        /** @type {?} */
-                        var urlJwt = self.authService.getJWTFromUrl();
-                        /** @type {?} */
-                        var headerJwt = AuthHeader
-                            .replace('Bearer', '')
-                            .trim();
-                        /** @type {?} */
-                        var newJwt = ((!!urlJwt && urlJwt.length) ? urlJwt : null)
-                            || ((!!headerJwt && headerJwt.length) ? headerJwt : null);
-                        if (newJwt)
-                            self.authService.setAuth(newJwt);
-                    }
-                    return event;
-                }
-                /**
-                 * The is the error handler when an unauthenticated request
-                 * comes back from the server...
-                 *
-                 * @param {?} err - Error from server
-                 * @return {?}
-                 */
-                function responseFailureHandler(err) {
-                    if (isHttpErrorResponse(event)) {
-                        if (err.status === 401) {
-                            self.authService.logout();
-                        }
-                    }
-                }
-                /** @type {?} */
-                var handler = next.handle(request).pipe(operators.tap(responseHandler, responseFailureHandler));
-                return handler;
-            };
-        TokenInterceptor.decorators = [
-            { type: core.Injectable }
-        ];
-        /** @nocollapse */
-        TokenInterceptor.ctorParameters = function () {
-            return [
-                { type: AuthService }
-            ];
-        };
-        return TokenInterceptor;
-    }());
 
     /**
      * @fileoverview added by tsickle
@@ -1333,7 +1181,6 @@
     exports.ngGpoauthFactory = ngGpoauthFactory$1;
     exports.AuthService = AuthService;
     exports.GeoPlatformUser = GeoPlatformUser;
-    exports.TokenInterceptor = TokenInterceptor;
     exports.ɵd = msgProvider;
     exports.ɵa = DefaultAuthConf;
 
