@@ -11,4 +11,5 @@ import { AuthConfig } from './authTypes';
 export declare function ngGpoauthFactory(config?: AuthConfig): AuthService;
 export { AuthService } from './auth';
 export { AuthConfig } from './authTypes';
+export { TokenInterceptor } from './angular/interceptor';
 export { GeoPlatformUser } from './GeoPlatformUser';

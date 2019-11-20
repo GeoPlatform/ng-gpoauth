@@ -93,7 +93,6 @@ You will first need to register a provider for using `AuthService` with Dependen
 // app.module.ts
 
 import { ngGpoauthFactory, AuthService } from 'ng-gpoauth/angular';
-import { TokenInterceptor } from 'ng-gpoauth/angular'
 
 /**
  * Configuration object for ng-gpoauth. See the Configuration section below
@@ -117,12 +116,6 @@ const authService = ngGpoauthFactory(authConfig);
         provide: AuthService,
         useValue: authService
       },
-      // Setup handler for sending and receiving tokens from backend service
-      {
-        provide: HTTP_INTERCEPTORS,
-        useClass: TokenInterceptor,
-        multi: true
-      }
       ...
   ],
   bootstrap: [AppComponent]
@@ -149,6 +142,42 @@ export class AppComponent {
 ```
 
 <br>
+
+### Optional Interceptor:
+An optional interceptor is provided that will send tokens to backend services
+via the `Authorizaion` header. Services such as [node-gpoauth](https://github.com/GeoPlatform/node-gpoauth)
+can read the token set in the header to authenticate a user server side.
+
+> **WARNING:**
+> Angular Interceptors are error pronoed and a security risk. You should generally
+> only send tokens on requests where the token is needed. Best practice is to
+> handle this logic in front end application code. The interceptor will send
+> the token to all out going requests and provides a greater security concern.
+
+```javascript
+// app.module.ts
+
+import { TokenInterceptor } from 'ng-gpoauth/angular'
+
+
+// ...
+
+@NgModule({
+  declarations: [...],
+  imports: [...],
+  providers: [
+      ...
+      // Setup handler for sending tokens to the backend service
+      {
+        provide: HTTP_INTERCEPTORS,
+        useClass: TokenInterceptor,
+        multi: true
+      }
+      ...
+  ],
+})
+```
+
 
 
 

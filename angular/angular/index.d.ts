@@ -22,5 +22,6 @@ export declare class msgProvider implements Messenger<Subject<MSG>> {
  */
 export declare function ngGpoauthFactory(config?: AuthConfig): AuthService;
 export { AuthService } from '../auth';
+export { TokenInterceptor } from './interceptor';
 export { GeoPlatformUser } from '../GeoPlatformUser';
 export { AuthConfig } from '../authTypes';

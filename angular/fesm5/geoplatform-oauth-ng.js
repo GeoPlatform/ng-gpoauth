@@ -1,6 +1,7 @@
 import { __awaiter, __generator } from 'tslib';
 import axios from 'axios';
 import { Subject } from 'rxjs';
+import { Injectable } from '@angular/core';
 
 /**
  * @fileoverview added by tsickle
@@ -1003,6 +1004,47 @@ var DefaultAuthConf = {
  * @fileoverview added by tsickle
  * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
+var TokenInterceptor = /** @class */ (function () {
+    function TokenInterceptor(authService) {
+        this.authService = authService;
+    }
+    /**
+     * @param {?} request
+     * @param {?} next
+     * @return {?}
+     */
+    TokenInterceptor.prototype.intercept = /**
+     * @param {?} request
+     * @param {?} next
+     * @return {?}
+     */
+    function (request, next) {
+        /** @type {?} */
+        var self = this;
+        /** @type {?} */
+        var jwt = self.authService.getJWT();
+        /** @type {?} */
+        var withAuthHeader = request.clone({
+            setHeaders: {
+                Authorization: jwt ? "Bearer " + jwt : ''
+            }
+        });
+        return next.handle(withAuthHeader);
+    };
+    TokenInterceptor.decorators = [
+        { type: Injectable }
+    ];
+    /** @nocollapse */
+    TokenInterceptor.ctorParameters = function () { return [
+        { type: AuthService }
+    ]; };
+    return TokenInterceptor;
+}());
+
+/**
+ * @fileoverview added by tsickle
+ * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
+ */
 var msgProvider = /** @class */ (function () {
     function msgProvider() {
         this.sub = new Subject();
@@ -1070,6 +1112,6 @@ function ngGpoauthFactory$1(config) {
  * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
  */
 
-export { ngGpoauthFactory$1 as ngGpoauthFactory, AuthService, GeoPlatformUser, msgProvider as ɵc, DefaultAuthConf as ɵa };
+export { ngGpoauthFactory$1 as ngGpoauthFactory, AuthService, TokenInterceptor, GeoPlatformUser, msgProvider as ɵc, DefaultAuthConf as ɵa };
 
 //# sourceMappingURL=geoplatform-oauth-ng.js.map
