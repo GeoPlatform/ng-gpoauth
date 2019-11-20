@@ -17,4 +17,5 @@ export function ngGpoauthFactory(config?: AuthConfig): AuthService {
 // Expose internal types
 export { AuthService } from './auth'
 export { AuthConfig } from './authTypes'
+export { TokenInterceptor } from './angular/interceptor'
 export { GeoPlatformUser } from './GeoPlatformUser'

@@ -1,8 +1,8 @@
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('axios'), require('rxjs')) :
-    typeof define === 'function' && define.amd ? define('@geoplatform/oauth-ng', ['exports', 'axios', 'rxjs'], factory) :
-    (factory((global.geoplatform = global.geoplatform || {}, global.geoplatform['oauth-ng'] = {}),global.axios,global.rxjs));
-}(this, (function (exports,axios,rxjs) { 'use strict';
+    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('axios'), require('rxjs'), require('@angular/core')) :
+    typeof define === 'function' && define.amd ? define('@geoplatform/oauth-ng', ['exports', 'axios', 'rxjs', '@angular/core'], factory) :
+    (factory((global.geoplatform = global.geoplatform || {}, global.geoplatform['oauth-ng'] = {}),global.axios,global.rxjs,global.ng.core));
+}(this, (function (exports,axios,rxjs,core) { 'use strict';
 
     axios = axios && axios.hasOwnProperty('default') ? axios['default'] : axios;
 
@@ -1111,6 +1111,52 @@
      * @fileoverview added by tsickle
      * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
      */
+    var TokenInterceptor = /** @class */ (function () {
+        function TokenInterceptor(authService) {
+            this.authService = authService;
+        }
+        // ====== For sending token (with request) ======//
+        /**
+         * @param {?} request
+         * @param {?} next
+         * @return {?}
+         */
+        TokenInterceptor.prototype.intercept = /**
+         * @param {?} request
+         * @param {?} next
+         * @return {?}
+         */
+            function (request, next) {
+                /** @type {?} */
+                var self = this;
+                /** @type {?} */
+                var jwt = self.authService.getJWT();
+                if (jwt) {
+                    // Send our current token
+                    request = request.clone({
+                        setHeaders: {
+                            Authorization: "Bearer " + jwt
+                        }
+                    });
+                }
+                return next.handle(request);
+            };
+        TokenInterceptor.decorators = [
+            { type: core.Injectable }
+        ];
+        /** @nocollapse */
+        TokenInterceptor.ctorParameters = function () {
+            return [
+                { type: AuthService }
+            ];
+        };
+        return TokenInterceptor;
+    }());
+
+    /**
+     * @fileoverview added by tsickle
+     * @suppress {checkTypes,extraRequire,uselessCode} checked by tsc
+     */
     var msgProvider = /** @class */ (function () {
         function msgProvider() {
             this.sub = new rxjs.Subject();
@@ -1180,6 +1226,7 @@
 
     exports.ngGpoauthFactory = ngGpoauthFactory$1;
     exports.AuthService = AuthService;
+    exports.TokenInterceptor = TokenInterceptor;
     exports.GeoPlatformUser = GeoPlatformUser;
     exports.ɵc = msgProvider;
     exports.ɵa = DefaultAuthConf;
