@@ -15,7 +15,7 @@
         "axios": "axios"
       }
     },
-    "dest": "angular"
+    "dest": "dist/angular"
   },
   "whitelistedNonPeerDependencies": [
     "."
