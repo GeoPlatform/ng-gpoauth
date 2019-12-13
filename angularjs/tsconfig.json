@@ -1,11 +1,13 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
+    "baseUrl": ".",
     "paths": {
+      "@ng-gpoauth/common": ["../src"]
     }
   },
   "include": [
-    "src/angularJS"
+    "src/angularjs",
   ],
   "exclude": [
     "node_modules"

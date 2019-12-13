@@ -1,17 +1,24 @@
 {
-  "compileOnSave": false,
+  "compileOnSave": true,
   "compilerOptions": {
-    "outDir": "./dist/out-tsc",
+    // "baseUrl": ".",
+    // "paths": {
+    //   "@ng-gpoauth/common": ["src/"]
+    // },
+    // "rootDirs": ["./src"],
+    "outDir": "dist",
     "sourceMap": true,
     "declaration": false,
     "moduleResolution": "node",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
     "target": "es5",
     "typeRoots": [
       "node_modules/@types"
     ],
     "lib": [
+      "es2015",
       "es2017",
       "dom"
     ]
