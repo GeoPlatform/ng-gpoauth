@@ -8,11 +8,19 @@ import axios from 'axios'
 const ACCESS_TOKEN_COOKIE  = 'gpoauth-a'
 
 async function getJson(url: string, jwt?: string) {
-  const resp = await axios.get(url, {
-                        headers: { 'Authorization' : jwt ? `Bearer ${jwt}` : '' },
-                        responseType: 'json'
-                      })
-  return resp.data;
+  try{
+    const resp = await axios.get(url, {
+                          headers: { 'Authorization' : jwt ? `Bearer ${jwt}` : '' },
+                          responseType: 'json'
+                        })
+    return resp.data;
+  } catch(err) {
+    return {
+      error: "Error fetching data",
+      msg: err,
+      url,
+    }
+  }
 }
 
 
@@ -204,8 +212,11 @@ export class AuthService {
    * Performs background logout and requests jwt revokation
    */
   async logout(): Promise<void> {
-    await getJson(`${this.config.APP_BASE_URL}/revoke`, this.getJWT())
-
+    try {
+      await getJson(`${this.config.APP_BASE_URL}/revoke`, this.getJWT())
+    } catch(err){
+      console.log(`Error logging out: ${err}`)
+    }
     if(this.config.LOGOUT_URL) window.location.href = this.config.LOGOUT_URL
     if(this.config.FORCE_LOGIN) this.forceLogin();
   }
