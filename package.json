@@ -1,15 +1,16 @@
 {
+  "$schema": "./node_modules/ng-packagr/package.schema.json",
   "name": "@geoplatform/oauth-ng",
   "version": "0.2.0",
   "license": "MIT",
   "ngPackage": {
     "lib": {
-      "entryFile": "public_api.ts",
+      "entryFile": "src/public_api.ts",
       "umdModuleIds": {
         "axios": "axios"
       }
     },
-    "dest": "dist/angular"
+    "dest": "dist"
   },
   "whitelistedNonPeerDependencies": [
     "."

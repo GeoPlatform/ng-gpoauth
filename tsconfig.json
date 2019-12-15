@@ -1,11 +1,6 @@
 {
   "compileOnSave": true,
   "compilerOptions": {
-    // "baseUrl": ".",
-    // "paths": {
-    //   "@ng-gpoauth/common": ["src/"]
-    // },
-    // "rootDirs": ["./src"],
     "outDir": "dist",
     "sourceMap": true,
     "declaration": false,
@@ -21,10 +16,15 @@
       "es2015",
       "es2017",
       "dom"
-    ]
+    ],
+    "compilerOptions": {
+       "paths": {
+         "@geoplatform/oauth-ng": ["dist/"]
+       }
+    }
   },
   "include": [
-    "src",
+    "src/**/*.ts",
   ],
   "exclude": [
     "node_modules"

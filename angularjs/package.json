@@ -1,12 +1,13 @@
 {
-    "main": "../dist/angularjs/index.js",
+    "main": "../dist/bundles/geoplatform-oauth-ng-angular.umd.js",
     "module": "dist/esm2015/angularjs/index.js",
     "typings": "dist/angularjs/index.d.ts",
     "ngPackage": {
         "lib": {
             "entryFile": "./index.ts",
             "umdModuleIds": {
-                "axios": "axios"
+                "axios": "axios",
+                "angular": "angular"
             }
         },
         "dest": "../dist/angularjs"

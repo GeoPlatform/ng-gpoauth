@@ -2,7 +2,7 @@ declare var angular: any
 /**
  * For AngluarJS (Angluar1 : JavaScript)
  */
-import { AuthService, DefaultAuthConf } from '@ng-gpoauth/common/auth'
+import { AuthService, DefaultAuthConf } from '@geoplatform/oauth-ng'
 // import * as poly from './polyfill'
 
 /**
