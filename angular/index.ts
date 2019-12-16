@@ -1,6 +1,36 @@
-import { AuthService, DefaultAuthConf } from './auth'
-import { AuthConfig } from './authTypes'
-import { msgProvider } from './angular/index'
+import { Subject } from 'rxjs'
+import { MSG
+       , Messenger
+       , authMessage
+       , AuthConfig
+       , GeoPlatformUser
+       , AuthService
+       , DefaultAuthConf } from '@geoplatform/oauth-ng'
+
+/**
+ * Angular implementation of message handler
+ */
+class msgProvider implements Messenger<Subject<MSG>> {
+    sub: Subject<MSG>
+
+    constructor(){
+        this.sub = new Subject<MSG>();
+    }
+
+    raw(){
+        return this.sub;
+    }
+
+    broadcast(name: authMessage, user: GeoPlatformUser){
+        this.sub.next({name, user})
+    }
+
+    on(name: authMessage, func: (e: Event, data: GeoPlatformUser) => any){
+        this.sub
+            .filter(msg => msg.name === name)
+            .subscribe(msg => func(new Event(msg.name), msg.user))
+    }
+}
 
 /**
  * Expose the class that can be loaded in Angular
@@ -10,12 +40,12 @@ import { msgProvider } from './angular/index'
  *  - Promise
  *  - Object
  */
-export function ngGpoauthFactory(config?: AuthConfig): AuthService {
+function ngGpoauthFactory(config?: AuthConfig): AuthService {
     return new AuthService(Object.assign({}, DefaultAuthConf, config),  new msgProvider())
 }
 
-// Expose internal types
-export { AuthService } from './auth'
-export { AuthConfig } from './authTypes'
-export { TokenInterceptor } from './angular/interceptor'
-export { GeoPlatformUser } from './GeoPlatformUser'
+// Expose API for consumption
+export { AuthService
+       , AuthConfig
+       , GeoPlatformUser
+       , ngGpoauthFactory }

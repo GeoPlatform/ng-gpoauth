@@ -3,7 +3,7 @@ declare var angular: any
  * For AngluarJS (Angluar1 : JavaScript)
  */
 import { AuthService, DefaultAuthConf } from '@geoplatform/oauth-ng'
-// import * as poly from './polyfill'
+
 
 /**
  * Detect if AngularJS (Angular version 1) is present

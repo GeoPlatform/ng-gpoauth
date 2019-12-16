@@ -1,0 +1,23 @@
+{
+  "main": "../bundles/geoplatform-oauth-ng-angular.umd.js",
+  "module": "../fesm5/geoplatform-oauth-ng-angular.js",
+  "typings": "geoplatform-oauth-ng-angular.d.ts",
+  "peerDependencies": {
+    "angular": "^1.6.0"
+  },
+  "devDependencies": {
+    "angular": "^1.6.0",
+    "q": "1.5.1",
+    "ts-node": "~4.1.0",
+    "tslint": "~5.9.1",
+    "typescript": "^3.4.0"
+  },
+  "es2015": "../fesm2015/geoplatform-oauth-ng-angular.js",
+  "esm5": "../esm5/angular/geoplatform-oauth-ng-angular.js",
+  "esm2015": "../esm2015/angular/geoplatform-oauth-ng-angular.js",
+  "fesm5": "../fesm5/geoplatform-oauth-ng-angular.js",
+  "fesm2015": "../fesm2015/geoplatform-oauth-ng-angular.js",
+  "metadata": "geoplatform-oauth-ng-angular.metadata.json",
+  "sideEffects": false,
+  "name": "@geoplatform/oauth-ng/angular"
+}

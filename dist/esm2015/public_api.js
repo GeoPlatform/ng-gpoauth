@@ -1,0 +1,8 @@
+/**
+ * These are the common objects and types that will be accessible to other
+ * dirivitive code (framework code).
+ */
+// Expose internal types
+export * from './auth';
+export * from './GeoPlatformUser';
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoicHVibGljX2FwaS5qcyIsInNvdXJjZVJvb3QiOiJuZzovL0BnZW9wbGF0Zm9ybS9vYXV0aC1uZy8iLCJzb3VyY2VzIjpbInB1YmxpY19hcGkudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQUE7OztHQUdHO0FBQ0gsd0JBQXdCO0FBQ3hCLGNBQWMsUUFBUSxDQUFBO0FBRXRCLGNBQWMsbUJBQW1CLENBQUEiLCJzb3VyY2VzQ29udGVudCI6WyIvKipcbiAqIFRoZXNlIGFyZSB0aGUgY29tbW9uIG9iamVjdHMgYW5kIHR5cGVzIHRoYXQgd2lsbCBiZSBhY2Nlc3NpYmxlIHRvIG90aGVyXG4gKiBkaXJpdml0aXZlIGNvZGUgKGZyYW1ld29yayBjb2RlKS5cbiAqL1xuLy8gRXhwb3NlIGludGVybmFsIHR5cGVzXG5leHBvcnQgKiBmcm9tICcuL2F1dGgnXG5leHBvcnQgKiBmcm9tICcuL2F1dGhUeXBlcydcbmV4cG9ydCAqIGZyb20gJy4vR2VvUGxhdGZvcm1Vc2VyJ1xuIl19
